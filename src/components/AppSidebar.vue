@@ -1,12 +1,17 @@
 <template>
-  <aside class="cc-sidebar">
-    <!-- Titlebar com traffic lights -->
+  <aside class="cc-sidebar" :class="{ collapsed: expanded === false }">
+    <!-- Titlebar com botão toggle -->
     <div class="cc-sidebar-titlebar">
-      <div class="cc-traffic-lights">
-        <span class="cc-tl cc-tl--close" />
-        <span class="cc-tl cc-tl--min" />
-        <span class="cc-tl cc-tl--max" />
-      </div>
+      <button
+        class="cc-toggle-btn"
+        @click="emit('toggle')"
+        :title="expanded === false ? 'Expandir sidebar' : 'Recolher sidebar'"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path v-if="expanded !== false" d="M10 3L6 8l4 5M6 3L2 8l4 5"/>
+          <path v-else d="M6 3l4 5-4 5M10 3l4 5-4 5"/>
+        </svg>
+      </button>
     </div>
 
     <!-- Brand -->
@@ -16,8 +21,8 @@
           <path d="M4 4l4 8 4-8M5 4h6" stroke="#0B0B0E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="cc-brand-name">Claudicaro</span>
-      <span class="cc-brand-beta">BETA</span>
+      <span v-show="expanded !== false" class="cc-brand-name">Claudicaro</span>
+      <span v-show="expanded !== false" class="cc-brand-beta">BETA</span>
     </div>
 
     <!-- Nova conversa -->
@@ -27,16 +32,16 @@
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
             <path d="M8 3v10M3 8h10"/>
           </svg>
-          Nova conversa
+          <span v-show="expanded !== false">Nova conversa</span>
         </span>
-        <span class="cc-new-btn-kbd">
+        <span v-show="expanded !== false" class="cc-new-btn-kbd">
           <kbd class="cc-kbd">⌘</kbd><kbd class="cc-kbd">N</kbd>
         </span>
       </button>
     </div>
 
     <!-- Search -->
-    <div class="cc-sidebar-search">
+    <div v-show="expanded !== false" class="cc-sidebar-search">
       <div class="cc-search-box">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <circle cx="7" cy="7" r="4.5"/><path d="M11 11l2.5 2.5"/>
@@ -50,13 +55,13 @@
     <nav class="cc-sidebar-nav">
       <router-link v-for="item in navItems" :key="item.to" :to="item.to" class="cc-nav-item" :title="item.label">
         <span class="cc-nav-icon" v-html="item.iconSvg" />
-        <span class="cc-nav-label">{{ item.label }}</span>
-        <span v-if="item.badge !== undefined" class="cc-nav-badge">{{ item.badge }}</span>
+        <span v-show="expanded !== false" class="cc-nav-label">{{ item.label }}</span>
+        <span v-if="item.badge !== undefined && expanded !== false" class="cc-nav-badge">{{ item.badge }}</span>
       </router-link>
     </nav>
 
     <!-- Sessions (condicional) -->
-    <template v-if="showSessions && sessions.length > 0">
+    <template v-if="showSessions && sessions.length > 0 && expanded !== false">
       <div class="cc-sessions-header">
         <span>Sessões recentes</span>
         <span class="cc-sessions-count">{{ sessions.length }}</span>
@@ -82,7 +87,7 @@
     <!-- User footer -->
     <div class="cc-sidebar-footer">
       <div class="cc-user-avatar">I</div>
-      <div class="cc-user-info">
+      <div v-show="expanded !== false" class="cc-user-info">
         <span class="cc-user-name">Icaro</span>
         <span class="cc-user-status">
           <span class="cc-dot cc-dot--green" />
@@ -103,8 +108,8 @@
 import { computed } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
 
-const props = defineProps<{ showSessions?: boolean }>()
-const emit = defineEmits<{ 'new-session': [] }>()
+const props = defineProps<{ showSessions?: boolean; expanded?: boolean }>()
+const emit = defineEmits<{ 'new-session': []; toggle: [] }>()
 
 const { sessions, currentSessionId, selectSession } = useSessions()
 
@@ -155,6 +160,11 @@ const navItems = [
   border-right: 1px solid var(--border-subtle);
   flex-shrink: 0;
   overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+.cc-sidebar.collapsed {
+  width: var(--sidebar-w-collapsed);
 }
 
 .cc-sidebar-titlebar {
@@ -166,23 +176,50 @@ const navItems = [
   flex-shrink: 0;
 }
 
-.cc-traffic-lights {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.cc-tl {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+.cc-toggle-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-app-region: no-drag;
   flex-shrink: 0;
 }
 
-.cc-tl--close { background: #FF5F57; }
-.cc-tl--min { background: #FEBC2E; }
-.cc-tl--max { background: #28C840; }
+.cc-toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.cc-sidebar.collapsed .cc-nav-item {
+  justify-content: center;
+  padding: 6px 8px;
+}
+
+.cc-sidebar.collapsed .cc-sidebar-brand {
+  justify-content: center;
+  padding: 4px 0 12px;
+}
+
+.cc-sidebar.collapsed .cc-sidebar-new {
+  padding: 0 6px;
+}
+
+.cc-sidebar.collapsed .cc-new-btn {
+  justify-content: center;
+  padding: 7px;
+  min-width: 0;
+}
+
+.cc-sidebar.collapsed .cc-sidebar-footer {
+  justify-content: center;
+  padding: 10px 6px;
+}
 
 .cc-sidebar-brand {
   padding: 4px 14px 12px;
