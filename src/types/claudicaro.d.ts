@@ -95,6 +95,12 @@ export interface MessageRecord {
   createdAt: Date
 }
 
+export interface UpdateStatus {
+  current: string
+  latest: string
+  hasUpdate: boolean
+}
+
 declare global {
   interface Window {
     claudicaro: {
@@ -118,6 +124,11 @@ declare global {
       settings: {
         get: () => Promise<AppSettings>
         save: (s: AppSettings) => Promise<void>
+      }
+      maintenance: {
+        backup: (destDir?: string) => Promise<string>
+        listBackups: () => Promise<string[]>
+        checkUpdate: () => Promise<UpdateStatus>
       }
     }
   }

@@ -41,6 +41,12 @@ const claudicaro = {
     get: (): Promise<unknown> => ipcRenderer.invoke('cc:settings:get'),
     save: (s: unknown): Promise<void> => ipcRenderer.invoke('cc:settings:save', s),
   },
+
+  maintenance: {
+    backup: (destDir?: string) => ipcRenderer.invoke('cc:maintenance:backup', { destDir }),
+    listBackups: () => ipcRenderer.invoke('cc:maintenance:backups'),
+    checkUpdate: () => ipcRenderer.invoke('cc:maintenance:update-check'),
+  },
 }
 
 contextBridge.exposeInMainWorld('claudicaro', claudicaro)

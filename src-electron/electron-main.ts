@@ -90,6 +90,19 @@ function setupIpcHandlers(): void {
 
   ipcMain.handle('cc:settings:get', async () => settingsStore.get())
   ipcMain.handle('cc:settings:save', async (_, settings: AppSettings) => settingsStore.save(settings))
+
+  ipcMain.handle('cc:maintenance:backup', async (_, { destDir }: { destDir?: string } = {}) => {
+    const { BackupManager } = await import('./maintenance/backup.js')
+    return new BackupManager().createBackup(destDir)
+  })
+  ipcMain.handle('cc:maintenance:backups', async () => {
+    const { BackupManager } = await import('./maintenance/backup.js')
+    return new BackupManager().listBackups()
+  })
+  ipcMain.handle('cc:maintenance:update-check', async () => {
+    const { UpdateChecker } = await import('./maintenance/update-checker.js')
+    return new UpdateChecker().checkLatest()
+  })
 }
 
 async function createWindow() {
