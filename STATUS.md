@@ -40,10 +40,6 @@
 - [x] T13: CLI Config Panel — done (SettingsStore JSON, SettingsPage 3 seções)
 - [x] T14: Workflow Visual BPMN — done (SVG puro, failover toggle, tooltip routing rules)
 
-## Wave 8
-- [ ] T15: Testes + CI/CD ← EXPANDIDO
-       - Vitest unit: router.ts classifyTask, failover logic, SessionManager
-       - E2E CLI health: verifica claude/gemini/gh --version e flags de bypass
-       - Integration: dispatch mock end-to-end (sem spawnar CLI real)
-       - CI: GitHub Actions workflow (lint + test + build)
-- [ ] T16: Operações e Manutenção
+## Wave 8 ✅ concluída
+- [x] T15: Testes + CI/CD — done (46 testes passando: unit router/dispatcher/session, E2E CLI health, integration dispatch mock, GitHub Actions CI)
+- [x] T16: Operações e Manutenção — done (BackupManager, LogRotation, UpdateChecker, IPC handlers, scripts CLI)
