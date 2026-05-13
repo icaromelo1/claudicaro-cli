@@ -35,10 +35,10 @@
        sobrescrevendo o roteamento automático do dispatcher.
        Persiste em Session.orchestratorConfig (JSON) no SQLite.
 
-## Wave 7
-- [ ] T12: Auth Google (OAuth2 via Electron shell)
-- [ ] T13: CLI Config Panel (paths, tokens, defaults por CLI)
-- [ ] T14: Workflow Visual BPMN
+## Wave 7 ✅ concluída
+- [x] T12: Auth Google — done (OAuth2 Electron shell, servidor HTTP :9999, redirect callback)
+- [x] T13: CLI Config Panel — done (SettingsStore JSON, SettingsPage 3 seções)
+- [x] T14: Workflow Visual BPMN — done (SVG puro, failover toggle, tooltip routing rules)
 
 ## Wave 8
 - [ ] T15: Testes + CI/CD ← EXPANDIDO
