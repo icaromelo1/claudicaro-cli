@@ -31,6 +31,8 @@ export class Dispatcher {
       modelFlag: useRouteFlags ? routeResult.modelFlag : undefined,
       bypassFlag: useRouteFlags ? routeResult.bypassFlag : undefined,
       sessionId: req.sessionId,
+      cliSessionId: req.cliSessionId,
+      contextMessages: req.contextMessages,
       onToken: req.onToken,
       abortSignal: req.abortSignal,
     }

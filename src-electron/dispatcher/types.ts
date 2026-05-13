@@ -8,6 +8,8 @@ export interface AdapterInvokeParams {
   bypassFlag?: string       // ex: "--dangerously-skip-permissions"
   context?: string[]        // caminhos de arquivos .agent/*.md para injetar
   sessionId: string         // ID da sessão atual
+  cliSessionId?: string     // ID de sessão do CLI para retomada (ex: --resume do Claude)
+  contextMessages?: Array<{ role: 'user' | 'assistant'; content: string }> // histórico para CLIs sem resume nativo
   onToken?: (chunk: string) => void  // streaming callback
   abortSignal?: AbortSignal
 }
@@ -18,6 +20,7 @@ export interface AdapterInvokeResult {
   model: string             // modelo que respondeu
   tokens?: number           // tokens consumidos (se disponível)
   latencyMs: number         // tempo total de resposta
+  cliSessionId?: string     // ID de sessão do CLI para retomada futura
   routingMeta: {
     reason: string          // motivo do roteamento
     toolRequirement: string // ferramenta usada para decidir
@@ -53,6 +56,8 @@ export interface DispatchRequest {
   sessionId: string
   forceTaskType?: string
   forceCli?: string
+  cliSessionId?: string
+  contextMessages?: Array<{ role: 'user' | 'assistant'; content: string }>
   onToken?: (chunk: string) => void
   abortSignal?: AbortSignal
 }

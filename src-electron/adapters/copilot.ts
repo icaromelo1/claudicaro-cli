@@ -27,10 +27,16 @@ export class CopilotAdapter implements IAdapter {
     guardDispatch('copilot', params.task)
     const startMs = Date.now()
 
-    const sanitizedTask = sanitizeInput(params.task)
+    let task = sanitizeInput(params.task)
+    if (params.contextMessages && params.contextMessages.length > 0) {
+      const prefix = params.contextMessages
+        .map((m) => `[${m.role === 'user' ? 'Usuário' : 'IA'}]: ${m.content}`)
+        .join('\n')
+      task = `Contexto da conversa anterior:\n${prefix}\n\nMensagem atual:\n${task}`
+    }
     // Route to explain or suggest based on task content
-    const subcommand = sanitizedTask.toLowerCase().includes('explain') ? 'explain' : 'suggest'
-    const args = ['copilot', subcommand, sanitizedTask]
+    const subcommand = task.toLowerCase().includes('explain') ? 'explain' : 'suggest'
+    const args = ['copilot', subcommand, task]
 
     const content = await new Promise<string>((resolve, reject) => {
       const proc = spawn('gh', args, { shell: false })

@@ -20,6 +20,12 @@ export function setupIpcHandlers(
   ipcMain.handle('cc:dispatch', async (event, { task, sessionId, forceCli }: { task: string; sessionId: string; forceCli?: string }) => {
     await sessionManager.persistMessage(sessionId, { role: 'user', content: task })
 
+    const cli = forceCli ?? 'claude'
+    const cliSessionId = await sessionManager.getCliSession(sessionId, cli) ?? undefined
+
+    const recentMessages = await sessionManager.getLastNMessages(sessionId, 10)
+    const contextMessages = recentMessages.map((m) => ({ role: m.role, content: m.content }))
+
     const controller = new AbortController()
     controllers.set(sessionId, controller)
 
@@ -28,6 +34,8 @@ export function setupIpcHandlers(
         task,
         sessionId,
         forceCli,
+        cliSessionId,
+        contextMessages,
         abortSignal: controller.signal,
         onToken: (chunk) => event.sender.send('cc:token', { chunk, sessionId }),
       })
@@ -41,6 +49,10 @@ export function setupIpcHandlers(
         tokens: result.tokens,
         latencyMs: result.latencyMs,
       })
+
+      if (result.cliSessionId) {
+        await sessionManager.saveCliSession(sessionId, result.cli, result.cliSessionId)
+      }
 
       if (result.tokens != null) {
         await tokenTracker.track({

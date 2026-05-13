@@ -38,7 +38,14 @@ export class GeminiAdapter implements IAdapter {
       args.push(...params.bypassFlag.trim().split(/\s+/))
     }
 
-    args.push('-p', sanitizeInput(params.task))
+    let task = sanitizeInput(params.task)
+    if (params.contextMessages && params.contextMessages.length > 0) {
+      const prefix = params.contextMessages
+        .map((m) => `[${m.role === 'user' ? 'Usuário' : 'IA'}]: ${m.content}`)
+        .join('\n')
+      task = `Contexto da conversa anterior:\n${prefix}\n\nMensagem atual:\n${task}`
+    }
+    args.push('-p', task)
 
     const content = await new Promise<string>((resolve, reject) => {
       const proc = spawn('gemini', args, { shell: false })
