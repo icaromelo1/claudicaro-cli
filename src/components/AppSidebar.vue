@@ -46,8 +46,18 @@
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <circle cx="7" cy="7" r="4.5"/><path d="M11 11l2.5 2.5"/>
         </svg>
-        <span class="cc-search-placeholder">Buscar conversas</span>
-        <span class="cc-search-kbd"><kbd class="cc-kbd">⌘</kbd><kbd class="cc-kbd">K</kbd></span>
+        <input
+          v-model="searchQuery"
+          class="cc-search-input"
+          placeholder="Buscar conversas"
+          type="text"
+        />
+        <button v-if="searchQuery" class="cc-search-clear" @click="searchQuery = ''">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M4 4l8 8M12 4l-8 8"/>
+          </svg>
+        </button>
+        <span v-else class="cc-search-kbd"><kbd class="cc-kbd">⌘</kbd><kbd class="cc-kbd">K</kbd></span>
       </div>
     </div>
 
@@ -61,24 +71,74 @@
     </nav>
 
     <!-- Sessions (condicional) -->
-    <template v-if="showSessions && sessions.length > 0 && expanded !== false">
-      <div class="cc-sessions-header">
-        <span>Sessões recentes</span>
-        <span class="cc-sessions-count">{{ sessions.length }}</span>
-      </div>
-      <div class="cc-sessions-list">
-        <div
-          v-for="session in sessions"
-          :key="session.id"
-          class="cc-session-row"
-          :class="{ active: session.id === currentSessionId }"
-          @click="selectSession(session.id)"
-        >
-          <span class="cc-dot" :style="{ background: cliColor((session as any).cli) }" />
-          <span class="cc-session-title">{{ session.title }}</span>
-          <span class="cc-session-time">{{ formatTime(session.createdAt) }}</span>
+    <template v-if="showSessions && expanded !== false">
+      <!-- Sessões fixadas -->
+      <template v-if="pinnedSessions.length > 0">
+        <div class="cc-sessions-header">
+          <span>Fixadas</span>
+          <span class="cc-sessions-count">{{ pinnedSessions.length }}</span>
         </div>
-      </div>
+        <div class="cc-sessions-list cc-sessions-list--pinned">
+          <SessionRow
+            v-for="session in pinnedSessions"
+            :key="session.id"
+            :session="session"
+            :is-active="session.id === currentSessionId"
+            :groups="groups"
+            @select="selectSession(session.id)"
+            @rename="(id, title) => handleRename(id, title)"
+            @pin="(id, pinned) => handlePin(id, pinned)"
+            @move-group="(id, gid) => handleMoveGroup(id, gid)"
+            @delete="(id) => handleDelete(id)"
+          />
+        </div>
+      </template>
+
+      <!-- Grupos -->
+      <template v-for="group in groups" :key="group.id">
+        <div v-if="sessionsByGroup[group.id]?.length" class="cc-sessions-header cc-sessions-header--group" @click="toggleGroup(group.id)">
+          <span class="cc-group-chevron" :class="{ open: !collapsedGroups.has(group.id) }">▶</span>
+          <span class="cc-group-dot" :style="{ background: group.color }" />
+          <span>{{ group.name }}</span>
+          <span class="cc-sessions-count">{{ sessionsByGroup[group.id]?.length }}</span>
+        </div>
+        <div v-if="!collapsedGroups.has(group.id) && sessionsByGroup[group.id]?.length" class="cc-sessions-list">
+          <SessionRow
+            v-for="session in sessionsByGroup[group.id]"
+            :key="session.id"
+            :session="session"
+            :is-active="session.id === currentSessionId"
+            :groups="groups"
+            @select="selectSession(session.id)"
+            @rename="(id, title) => handleRename(id, title)"
+            @pin="(id, pinned) => handlePin(id, pinned)"
+            @move-group="(id, gid) => handleMoveGroup(id, gid)"
+            @delete="(id) => handleDelete(id)"
+          />
+        </div>
+      </template>
+
+      <!-- Sessões sem grupo -->
+      <template v-if="ungroupedSessions.length > 0">
+        <div class="cc-sessions-header">
+          <span>Sessões recentes</span>
+          <span class="cc-sessions-count">{{ ungroupedSessions.length }}</span>
+        </div>
+        <div class="cc-sessions-list">
+          <SessionRow
+            v-for="session in ungroupedSessions"
+            :key="session.id"
+            :session="session"
+            :is-active="session.id === currentSessionId"
+            :groups="groups"
+            @select="selectSession(session.id)"
+            @rename="(id, title) => handleRename(id, title)"
+            @pin="(id, pinned) => handlePin(id, pinned)"
+            @move-group="(id, gid) => handleMoveGroup(id, gid)"
+            @delete="(id) => handleDelete(id)"
+          />
+        </div>
+      </template>
     </template>
 
     <!-- Spacer -->
@@ -105,27 +165,73 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
+import type { SessionSummary, SessionGroup } from 'src/types/claudicaro'
+import SessionRow from './SessionRow.vue'
 
 const props = defineProps<{ showSessions?: boolean; expanded?: boolean }>()
 const emit = defineEmits<{ 'new-session': []; toggle: [] }>()
 
-const { sessions, currentSessionId, selectSession } = useSessions()
+const { sessions, groups, currentSessionId, selectSession, renameSession, pinSession, moveToGroup, deleteSession } = useSessions()
 
-const CLI_COLORS: Record<string, string> = {
-  claude: '#D97757',
-  gemini: '#5187F2',
-  copilot: '#B5C0CC',
+const searchQuery = ref('')
+const collapsedGroups = ref(new Set<string>())
+
+let debounceTimer: ReturnType<typeof setTimeout>
+const filteredSessions = ref<SessionSummary[]>(sessions.value)
+
+watch([sessions, searchQuery], ([newSessions, q]) => {
+  clearTimeout(debounceTimer)
+  if (!q || q.length < 2) {
+    filteredSessions.value = newSessions
+    return
+  }
+  debounceTimer = setTimeout(async () => {
+    filteredSessions.value = await window.claudicaro.session.search(q)
+  }, 300)
+}, { immediate: true })
+
+const pinnedSessions = computed(() =>
+  filteredSessions.value.filter((s) => s.pinnedAt != null)
+)
+
+const sessionsByGroup = computed(() => {
+  const map: Record<string, SessionSummary[]> = {}
+  for (const s of filteredSessions.value) {
+    if (s.groupId && !s.pinnedAt) {
+      ;(map[s.groupId] ??= []).push(s)
+    }
+  }
+  return map
+})
+
+const ungroupedSessions = computed(() =>
+  filteredSessions.value.filter((s) => !s.pinnedAt && !s.groupId)
+)
+
+function toggleGroup(id: string) {
+  const next = new Set(collapsedGroups.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  collapsedGroups.value = next
 }
 
-function cliColor(cli?: string) {
-  return cli ? (CLI_COLORS[cli] ?? 'var(--text-faint)') : 'var(--text-faint)'
+async function handleRename(id: string, title: string) {
+  await renameSession(id, title)
 }
 
-function formatTime(date: Date | string) {
-  const d = new Date(date)
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+async function handlePin(id: string, pinned: boolean) {
+  await pinSession(id, pinned)
+}
+
+async function handleMoveGroup(sessionId: string, groupId: string | null) {
+  await moveToGroup(sessionId, groupId)
+}
+
+async function handleDelete(id: string) {
+  if (!window.confirm('Excluir essa conversa?')) return
+  await deleteSession(id)
 }
 
 const connectedCount = computed(() => 3)
@@ -324,12 +430,43 @@ const navItems = [
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
   font-size: 12px;
-  cursor: text;
+  color: var(--text-muted);
+  transition: border-color 0.15s;
+}
+
+.cc-search-box:focus-within {
+  border-color: var(--accent);
+}
+
+.cc-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.cc-search-input::placeholder {
   color: var(--text-muted);
 }
 
-.cc-search-placeholder {
-  flex: 1;
+.cc-search-clear {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  background: var(--bg-elevated);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.cc-search-clear:hover {
+  color: var(--text-primary);
 }
 
 .cc-search-kbd {
@@ -405,7 +542,7 @@ const navItems = [
 .cc-sessions-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
   padding: 12px 14px 4px;
   font-size: 10.5px;
   font-weight: 500;
@@ -415,8 +552,36 @@ const navItems = [
   flex-shrink: 0;
 }
 
+.cc-sessions-header--group {
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 14px 4px;
+}
+
+.cc-sessions-header--group:hover {
+  color: var(--text-secondary);
+}
+
+.cc-group-chevron {
+  font-size: 8px;
+  transition: transform 0.15s;
+  display: inline-block;
+}
+
+.cc-group-chevron.open {
+  transform: rotate(90deg);
+}
+
+.cc-group-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .cc-sessions-count {
   color: var(--text-faint);
+  margin-left: auto;
 }
 
 .cc-sessions-list {
@@ -426,43 +591,8 @@ const navItems = [
   flex: 1;
 }
 
-.cc-session-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 1px;
-  transition: background 0.1s;
-}
-
-.cc-session-row:hover {
-  background: var(--bg-hover);
-}
-
-.cc-session-row.active {
-  background: var(--vibrancy-strong);
-}
-
-.cc-session-title {
-  flex: 1;
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cc-session-row.active .cc-session-title {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.cc-session-time {
-  font-size: 10.5px;
-  color: var(--text-faint);
-  flex-shrink: 0;
+.cc-sessions-list--pinned {
+  flex: 0;
 }
 
 .cc-sidebar-footer {
