@@ -21,10 +21,10 @@
 
 ---
 
-## Wave 6 — Features
-- [ ] T10: Tokens e Segurança (rate limit tracking, token budget por sessão)
-- [ ] T11: Failover e Observabilidade (logs estruturados, AuditLog, health dashboard)
-- [ ] T17: Conversation Config Modal ← NOVO
+## Wave 6 ✅ concluída
+- [x] T10: Tokens e Segurança — done (TokenTracker, budget por sessão, AuditLog)
+- [x] T11: Failover e Observabilidade — done (DispatcherLogger ring-buffer, HealthPage)
+- [x] T17: Conversation Config Modal — done (4 passos, migration orchestratorConfig, default claude-sonnet-4-6+bypass)
        Modal ao criar nova conversa:
          Passo 1 — CLI (Claude / Gemini / Copilot)
          Passo 2 — Modelo (lista filtrada por CLI)
