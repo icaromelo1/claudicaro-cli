@@ -16,8 +16,8 @@
 - [x] T7: Adapters mínimos — done (ClaudeAdapter, GeminiAdapter, CopilotAdapter)
 - [x] T8: Session Manager — done (SessionManager + MemoryWriteBuffer)
 
-## Wave 5 ✅ CORE
-- [ ] T9: Integração Chat ↔ Dispatcher ↔ Adapters
+## Wave 5 ✅ CORE ✅ concluída
+- [x] T9: Integração Chat ↔ Dispatcher ↔ Adapters — done (IPC bridge, streaming, session persistence)
 
 ## Wave 6
 - [ ] T10: Tokens e Segurança

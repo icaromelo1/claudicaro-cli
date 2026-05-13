@@ -33,7 +33,13 @@
           <q-btn flat round dense icon="menu" @click="sidebarOpen = !sidebarOpen" class="cc-icon-btn" />
           <span class="cc-chat-title">{{ currentSession?.title ?? 'Nova conversa' }}</span>
           <div class="cc-active-clis">
-            <span v-for="cli in activeClis" :key="cli" class="cc-cli-dot" :style="{ background: cliColors[cli] }" :title="cli" />
+            <span
+              v-for="cli in activeClis"
+              :key="cli"
+              class="cc-cli-dot"
+              :style="{ background: cliColors[cli] }"
+              :title="cli"
+            />
           </div>
         </div>
 
@@ -45,7 +51,12 @@
               :key="msg.id"
               :message="msg"
             />
-            <ChatLoading v-if="isLoading" :cli="loadingCli" />
+            <ChatLoading v-if="isLoading && !streamingContent" :cli="loadingCli" />
+            <!-- Mensagem em streaming -->
+            <ChatMessage
+              v-if="streamingContent"
+              :message="streamingMessage"
+            />
           </div>
         </q-scroll-area>
 
@@ -60,17 +71,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import ChatMessage from 'components/ChatMessage.vue'
 import ChatInput from 'components/ChatInput.vue'
 import ChatLoading from 'components/ChatLoading.vue'
+import type { SessionSummary, MessageRecord, DispatchResult } from 'src/types/claudicaro'
 
 const sidebarOpen = ref(true)
 const currentSessionId = ref<string | null>(null)
-const messages = ref<any[]>([])
+const messages = ref<MessageRecord[]>([])
 const isLoading = ref(false)
 const loadingCli = ref<string>('claude')
+const streamingContent = ref('')
 const scrollArea = ref()
+const sessions = ref<SessionSummary[]>([])
 
 const cliColors: Record<string, string> = {
   claude: 'var(--cli-claude)',
@@ -80,57 +94,118 @@ const cliColors: Record<string, string> = {
 
 const activeClis = ref(['claude', 'gemini', 'copilot'])
 
-// Mock sessions para UI funcionar antes do backend
-const sessions = ref([
-  { id: 's1', title: 'Nova conversa', messageCount: 0 },
-])
-
 const currentSession = computed(() =>
-  sessions.value.find(s => s.id === currentSessionId.value) ?? sessions.value[0]
+  sessions.value.find(s => s.id === currentSessionId.value)
 )
 
-function newSession() {
-  const id = `s${Date.now()}`
-  sessions.value.unshift({ id, title: 'Nova conversa', messageCount: 0 })
+const streamingMessage = computed(() => ({
+  id: 'streaming',
+  sessionId: currentSessionId.value ?? '',
+  role: 'assistant' as const,
+  content: streamingContent.value,
+  cli: loadingCli.value,
+  model: '',
+  createdAt: new Date(),
+}))
+
+let unsubscribeToken: (() => void) | null = null
+
+onMounted(async () => {
+  unsubscribeToken = window.claudicaro.onToken((chunk, sessionId) => {
+    if (sessionId === currentSessionId.value) {
+      streamingContent.value += chunk
+      nextTick(() => scrollArea.value?.setScrollPercentage('vertical', 1.0, 150))
+    }
+  })
+  await loadSessions()
+  if (sessions.value.length === 0) {
+    await newSession()
+  } else {
+    currentSessionId.value = sessions.value[0]!.id
+    await loadHistory(sessions.value[0]!.id)
+  }
+})
+
+onUnmounted(() => {
+  unsubscribeToken?.()
+})
+
+async function loadSessions() {
+  sessions.value = await window.claudicaro.session.list()
+}
+
+async function loadHistory(sessionId: string) {
+  messages.value = await window.claudicaro.session.history(sessionId)
+}
+
+async function newSession() {
+  const { id, title } = await window.claudicaro.session.create()
+  sessions.value.unshift({ id, title, createdAt: new Date(), messageCount: 0 })
   currentSessionId.value = id
   messages.value = []
 }
 
-function selectSession(id: string) {
+async function selectSession(id: string) {
   currentSessionId.value = id
   messages.value = []
+  await loadHistory(id)
 }
 
 async function sendMessage(content: string) {
-  if (!content.trim() || isLoading.value) return
+  if (!content.trim() || isLoading.value || !currentSessionId.value) return
 
-  messages.value.push({
+  const userMsg: MessageRecord = {
     id: Date.now().toString(),
+    sessionId: currentSessionId.value,
     role: 'user',
     content,
-    createdAt: new Date().toISOString(),
-  })
+    createdAt: new Date(),
+  }
+  messages.value.push(userMsg)
+
+  const session = sessions.value.find(s => s.id === currentSessionId.value)
+  if (session) session.messageCount++
 
   isLoading.value = true
-  loadingCli.value = 'claude'
+  streamingContent.value = ''
 
   await nextTick()
   scrollArea.value?.setScrollPercentage('vertical', 1.0, 300)
 
-  // Placeholder até dispatcher estar integrado (T9)
-  setTimeout(() => {
+  try {
+    const result: DispatchResult = await window.claudicaro.dispatch(content, currentSessionId.value)
+
+    loadingCli.value = result.cli
+
     messages.value.push({
       id: (Date.now() + 1).toString(),
+      sessionId: currentSessionId.value,
       role: 'assistant',
-      cli: 'claude',
-      model: 'claude-sonnet-4-6',
-      content: 'Dispatcher ainda não conectado. Aguardando T9.',
-      routingMeta: '{"reason":"placeholder","toolRequirement":"code_analysis"}',
-      createdAt: new Date().toISOString(),
+      content: result.content,
+      cli: result.cli,
+      model: result.model,
+      routingMeta: result.routingMeta,
+      tokens: result.tokens,
+      latencyMs: result.latencyMs,
+      createdAt: new Date(),
     })
+
+    if (session) session.messageCount++
+  } catch (err) {
+    messages.value.push({
+      id: (Date.now() + 1).toString(),
+      sessionId: currentSessionId.value,
+      role: 'assistant',
+      content: `Erro ao processar: ${(err as Error).message}`,
+      cli: 'claude',
+      createdAt: new Date(),
+    })
+  } finally {
+    streamingContent.value = ''
     isLoading.value = false
-    nextTick(() => scrollArea.value?.setScrollPercentage('vertical', 1.0, 300))
-  }, 1200)
+    await nextTick()
+    scrollArea.value?.setScrollPercentage('vertical', 1.0, 300)
+  }
 }
 </script>
 
