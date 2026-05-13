@@ -104,7 +104,7 @@ export interface UpdateStatus {
 declare global {
   interface Window {
     claudicaro: {
-      dispatch: (task: string, sessionId: string) => Promise<DispatchResult>
+      dispatch: (task: string, sessionId: string, forceCli?: string) => Promise<DispatchResult>
       onToken: (cb: (chunk: string, sessionId: string) => void) => () => void
       session: {
         create: (title?: string, orchestratorConfig?: string) => Promise<{ id: string; title: string; orchestratorConfig?: string }>

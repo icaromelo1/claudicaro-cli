@@ -14,12 +14,13 @@ export function setupIpcHandlers(
   googleAuth: GoogleAuth,
   settingsStore: SettingsStore,
 ): void {
-  ipcMain.handle('cc:dispatch', async (event, { task, sessionId }: { task: string; sessionId: string }) => {
+  ipcMain.handle('cc:dispatch', async (event, { task, sessionId, forceCli }: { task: string; sessionId: string; forceCli?: string }) => {
     await sessionManager.persistMessage(sessionId, { role: 'user', content: task })
 
     const result = await dispatcher.dispatch({
       task,
       sessionId,
+      forceCli,
       onToken: (chunk) => event.sender.send('cc:token', { chunk, sessionId }),
     })
 

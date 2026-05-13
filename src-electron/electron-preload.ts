@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 const claudicaro = {
-  dispatch: (task: string, sessionId: string): Promise<unknown> =>
-    ipcRenderer.invoke('cc:dispatch', { task, sessionId }),
+  dispatch: (task: string, sessionId: string, forceCli?: string): Promise<unknown> =>
+    ipcRenderer.invoke('cc:dispatch', { task, sessionId, forceCli }),
 
   onToken: (cb: (chunk: string, sessionId: string) => void): (() => void) => {
     const handler = (_: unknown, data: { chunk: string; sessionId: string }) =>

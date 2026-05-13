@@ -1,211 +1,261 @@
 <template>
-  <q-layout view="lHh lpR lFf" class="cc-app">
-    <!-- Sidebar de sessões -->
-    <q-drawer
-      v-model="sidebarOpen"
-      :width="248"
-      :breakpoint="700"
-      class="cc-sidebar"
-    >
-      <div class="cc-sidebar-header">
-        <span class="cc-sidebar-title">Claudicaro</span>
-        <q-btn flat round dense icon="add" @click="newSession" class="cc-icon-btn" />
+  <div class="cc-chat-page">
+    <!-- Header -->
+    <header class="cc-chat-header">
+      <div class="cc-chat-header-left">
+        <span class="cc-chat-title">{{ currentSession?.title ?? 'Nova conversa' }}</span>
+        <span class="cc-chat-subtitle">{{ messages.length }} mensagens · {{ activeClis.length }} CLIs envolvidas</span>
       </div>
-      <q-scroll-area class="cc-sidebar-sessions">
-        <div
-          v-for="session in sessions"
-          :key="session.id"
-          class="cc-session-item"
-          :class="{ active: session.id === currentSessionId }"
-          @click="selectSession(session.id)"
-        >
-          <span class="cc-session-title">{{ session.title }}</span>
-          <span class="cc-session-meta">{{ session.messageCount }} msgs</span>
-        </div>
-      </q-scroll-area>
-    </q-drawer>
+      <div class="cc-chat-header-right">
+        <button class="cc-header-chip">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h10M3 10h10M9 3l3 3-3 3"/>
+          </svg>
+          main
+        </button>
+        <button class="cc-header-chip">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M5 7l2 2-2 2"/>
+            <path d="M9 11h2"/>
+          </svg>
+          ~/claudicaro
+        </button>
+        <div class="cc-header-divider" />
+        <button class="cc-header-chip cc-header-chip--active" @click="$router.push('/workflow')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="6" width="4" height="4" rx="0.8"/>
+            <rect x="11" y="2" width="4" height="4" rx="0.8"/>
+            <rect x="11" y="10" width="4" height="4" rx="0.8"/>
+            <path d="M5 8h3M8 8V4h3M8 8v4h3"/>
+          </svg>
+          Workflow
+        </button>
+        <button class="cc-header-more">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="3" cy="8" r="1.2" fill="currentColor"/>
+            <circle cx="8" cy="8" r="1.2" fill="currentColor"/>
+            <circle cx="13" cy="8" r="1.2" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </header>
 
-    <!-- Modal de configuração de nova conversa -->
-    <ConversationConfigModal
-      v-if="showConfigModal"
-      @confirm="onConfigConfirm"
-      @cancel="showConfigModal = false"
-    />
+    <!-- Estado vazio: sem sessão -->
+    <div v-if="!currentSessionId" class="cc-chat-empty">
+      <div class="cc-empty-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <p class="cc-empty-title">Nenhuma conversa selecionada</p>
+      <p class="cc-empty-sub">Clique em "Nova conversa" na barra lateral para começar.</p>
+    </div>
 
-    <!-- Área principal -->
-    <q-page-container>
-      <q-page class="cc-chat-page">
-        <!-- Header -->
-        <div class="cc-chat-header">
-          <q-btn flat round dense icon="menu" @click="sidebarOpen = !sidebarOpen" class="cc-icon-btn" />
-          <span class="cc-chat-title">{{ currentSession?.title ?? 'Nova conversa' }}</span>
-          <div class="cc-active-clis">
-            <span
-              v-for="cli in activeClis"
-              :key="cli"
-              class="cc-cli-dot"
-              :style="{ background: cliColors[cli] }"
-              :title="cli"
-            />
-          </div>
-        </div>
-
-        <!-- Mensagens -->
-        <q-scroll-area ref="scrollArea" class="cc-messages-area">
-          <div class="cc-messages-inner">
-            <ChatMessage
-              v-for="msg in messages"
-              :key="msg.id"
-              :message="msg"
-            />
-            <ChatLoading v-if="isLoading && !streamingContent" :cli="loadingCli" />
-            <!-- Mensagem em streaming -->
-            <ChatMessage
-              v-if="streamingContent"
-              :message="streamingMessage"
-            />
-          </div>
-        </q-scroll-area>
-
-        <!-- Input -->
-        <ChatInput
-          :disabled="isLoading"
-          @send="sendMessage"
+    <!-- Mensagens -->
+    <div v-else class="cc-messages-area" ref="messagesContainer">
+      <div class="cc-messages-inner">
+        <ChatMessage
+          v-for="msg in messages"
+          :key="msg.id"
+          :message="msg"
         />
-      </q-page>
-    </q-page-container>
-  </q-layout>
+        <ChatLoading v-if="isLoading && !streamingContent" :cli="loadingCli" />
+        <ChatMessage
+          v-if="streamingContent"
+          :message="streamingMessage"
+        />
+      </div>
+    </div>
+
+    <!-- Input -->
+    <ChatInput :disabled="isLoading || !currentSessionId" @send="onSend" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick, watch, onMounted } from 'vue'
 import ChatMessage from 'components/ChatMessage.vue'
 import ChatInput from 'components/ChatInput.vue'
 import ChatLoading from 'components/ChatLoading.vue'
-import ConversationConfigModal from 'components/ConversationConfigModal.vue'
 import { useChat } from 'src/composables/useChat'
+import { useSessions } from 'src/composables/useSessions'
 
-const scrollArea = ref()
-const sidebarOpen = ref(true)
+const messagesContainer = ref<HTMLElement>()
 
-const cliColors: Record<string, string> = {
-  claude: 'var(--cli-claude)',
-  gemini: 'var(--cli-gemini)',
-  copilot: 'var(--cli-copilot)',
+function scrollToBottom() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  })
 }
 
+const { loadSessions, createSession, currentSessionId, sessions } = useSessions()
 const {
-  currentSessionId,
   messages,
   isLoading,
   loadingCli,
   streamingContent,
-  sessions,
-  showConfigModal,
   activeClis,
   currentSession,
   streamingMessage,
-  newSession,
-  onConfigConfirm,
-  selectSession,
   sendMessage,
-} = useChat(() => scrollArea.value?.setScrollPercentage('vertical', 1.0, 150))
+} = useChat(scrollToBottom)
+
+onMounted(async () => {
+  await loadSessions()
+  if (sessions.value.length > 0 && !currentSessionId.value) {
+    currentSessionId.value = sessions.value[0]!.id
+  } else if (sessions.value.length === 0) {
+    await createSession({ title: 'Nova conversa' })
+  }
+})
+
+async function onSend(payload: { content: string; mode: string }) {
+  await sendMessage(payload.content, payload.mode)
+}
+
+watch(() => messages.value.length, scrollToBottom)
 </script>
 
 <style scoped>
-.cc-app {
-  background: var(--bg-base);
+.cc-chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-canvas);
+  overflow: hidden;
 }
-.cc-sidebar {
-  background: var(--bg-sidebar) !important;
-  border-right: 1px solid var(--border-subtle);
-}
-.cc-sidebar-header {
+
+.cc-chat-header {
   height: var(--titlebar-h);
   display: flex;
   align-items: center;
-  padding: 0 var(--s-3);
-  border-bottom: 1px solid var(--border-subtle);
   justify-content: space-between;
+  padding: 0 16px 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 12px;
   -webkit-app-region: drag;
+  flex-shrink: 0;
 }
-.cc-sidebar-title {
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.02em;
-}
-.cc-sidebar-sessions {
-  height: calc(100% - var(--titlebar-h));
-}
-.cc-session-item {
-  padding: var(--s-2) var(--s-3);
-  cursor: pointer;
-  border-radius: var(--r-md);
-  margin: 2px var(--s-2);
+
+.cc-chat-header-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  transition: background 0.12s;
+  line-height: 1.15;
+  min-width: 0;
 }
-.cc-session-item:hover { background: var(--bg-hover); }
-.cc-session-item.active { background: var(--bg-active); }
-.cc-session-title {
-  font-size: var(--fs-sm);
+
+.cc-chat-title {
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cc-session-meta {
-  font-size: var(--fs-xs);
+
+.cc-chat-subtitle {
+  font-size: 10.5px;
   color: var(--text-muted);
 }
-.cc-chat-page {
+
+.cc-chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+}
+
+.cc-header-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cc-header-chip:hover {
+  background: var(--bg-hover);
+}
+
+.cc-header-chip--active {
+  background: var(--accent-dim);
+  border-color: rgba(63, 207, 142, 0.25);
+  color: var(--accent);
+}
+
+.cc-header-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-subtle);
+  margin: 0 4px;
+}
+
+.cc-header-more {
+  width: 28px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cc-header-more:hover {
+  background: var(--bg-hover);
+}
+
+.cc-chat-empty {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: var(--bg-canvas);
-}
-.cc-chat-header {
-  height: var(--titlebar-h);
-  display: flex;
   align-items: center;
-  gap: var(--s-2);
-  padding: 0 var(--s-4);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
-  flex-shrink: 0;
-  -webkit-app-region: drag;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+  padding: 40px;
 }
-.cc-chat-title {
-  font-size: var(--fs-sm);
+
+.cc-empty-icon {
+  opacity: 0.3;
+}
+
+.cc-empty-title {
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
-  flex: 1;
+  color: var(--text-secondary);
+  margin: 0;
 }
-.cc-active-clis {
-  display: flex;
-  align-items: center;
-  gap: var(--s-1);
-  -webkit-app-region: no-drag;
+
+.cc-empty-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: center;
 }
-.cc-cli-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-}
+
 .cc-messages-area {
   flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
 }
+
 .cc-messages-inner {
   max-width: 760px;
   margin: 0 auto;
-  padding: var(--s-3) var(--s-6);
-}
-.cc-icon-btn {
-  color: var(--text-muted) !important;
-  -webkit-app-region: no-drag;
+  padding: 0 24px;
 }
 </style>
