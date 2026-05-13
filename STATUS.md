@@ -9,8 +9,8 @@
 - [x] T4: Design da arquitetura dispatcher — done (rules.yaml, adapters.md, types.ts)
 - [x] T6: Chat UI base — done (ChatPage, ChatMessage, ChatInput, ChatLoading)
 
-## Wave 3
-- [ ] T5: MVP Dispatcher core
+## Wave 3 ✅ concluída
+- [x] T5: MVP Dispatcher core — done (router.ts + index.ts, failover CONTEXT/TIMEOUT/OVERLOAD/RATE_LIMIT)
 
 ## Wave 4
 - [ ] T7: Adapters mínimos
