@@ -1,14 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import path from 'path'
-import { app } from 'electron'
 
-// Em produção usa userData do Electron, em dev usa raiz do projeto
-const dbPath = process.env.NODE_ENV === 'production'
-  ? path.join(app.getPath('userData'), 'claudicaro.db')
-  : path.join(process.cwd(), 'prisma', 'claudicaro.db')
+const dbPath = path.join(process.cwd(), 'prisma', 'claudicaro.db')
+const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` })
 
-export const prisma = new PrismaClient({
-  datasources: {
-    db: { url: `file:${dbPath}` }
-  }
-})
+export const prisma = new PrismaClient({ adapter })
