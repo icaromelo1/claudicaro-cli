@@ -1,225 +1,241 @@
 <template>
   <div class="cc-settings-page">
-    <div class="cc-settings-header">
-      <span class="cc-settings-title">Configurações</span>
-      <span class="cc-settings-subtitle">Personalize CLIs, orquestrador padrão e limites de tokens</span>
-    </div>
+    <!-- Header -->
+    <header class="cc-settings-header-bar">
+      <span class="cc-settings-header-title">Configurações</span>
+    </header>
 
-    <div class="cc-settings-body">
+    <div class="cc-settings-layout">
+      <!-- Nav lateral -->
+      <nav class="cc-settings-nav">
+        <button
+          v-for="item in navItems"
+          :key="item.id"
+          class="cc-settings-nav-item"
+          :class="{ active: activeNav === item.id }"
+          @click="activeNav = item.id"
+        >{{ item.label }}</button>
+      </nav>
 
-      <!-- ─── Seção 1: CLIs ──────────────────────────────────────────── -->
-      <div class="cc-section">
-        <button class="cc-section-toggle" @click="toggleSection('clis')">
-          <span class="cc-section-label">CLIs</span>
-          <span class="cc-section-chevron" :class="{ open: openSections.clis }">›</span>
-        </button>
+      <!-- Conteúdo -->
+      <div class="cc-settings-content">
+        <div class="cc-settings-body">
 
-        <div v-if="openSections.clis" class="cc-section-body">
-          <div
-            v-for="cliKey in cliKeys"
-            :key="cliKey"
-            class="cc-cli-block"
-          >
-            <div class="cc-cli-block-header">
-              <span class="cc-cli-dot" :style="{ background: `var(--cli-${cliKey})` }" />
-              <span class="cc-cli-block-name">{{ cliLabels[cliKey] }}</span>
-              <label class="cc-toggle">
-                <input type="checkbox" v-model="settings.clis[cliKey].enabled" />
-                <span class="cc-toggle-track" />
-              </label>
+          <!-- ─── Seção 1: CLIs ──────────────────────────────────────────── -->
+          <div v-show="activeNav === 'clis'" class="cc-section">
+            <div class="cc-section-header">
+              <span class="cc-section-label">CLIs</span>
             </div>
 
-            <div class="cc-cli-fields" :class="{ disabled: !settings.clis[cliKey].enabled }">
+            <div class="cc-section-body">
+              <div
+                v-for="cliKey in cliKeys"
+                :key="cliKey"
+                class="cc-cli-block"
+              >
+                <div class="cc-cli-block-header">
+                  <span class="cc-cli-dot" :style="{ background: `var(--cli-${cliKey})` }" />
+                  <span class="cc-cli-block-name">{{ cliLabels[cliKey] }}</span>
+                  <label class="cc-toggle">
+                    <input type="checkbox" v-model="settings.clis[cliKey].enabled" />
+                    <span class="cc-toggle-track" />
+                  </label>
+                </div>
+
+                <div class="cc-cli-fields" :class="{ disabled: !settings.clis[cliKey].enabled }">
+                  <div class="cc-field-row">
+                    <label class="cc-field-label">Caminho do binário</label>
+                    <input
+                      class="cc-input"
+                      type="text"
+                      v-model="settings.clis[cliKey].binaryPath"
+                      :placeholder="cliKey === 'copilot' ? 'gh' : cliKey"
+                      :disabled="!settings.clis[cliKey].enabled"
+                    />
+                  </div>
+
+                  <div v-if="modelsByCliMap[cliKey].length > 0" class="cc-field-row">
+                    <label class="cc-field-label">Modelo padrão</label>
+                    <select
+                      class="cc-select"
+                      v-model="settings.clis[cliKey].defaultModel"
+                      :disabled="!settings.clis[cliKey].enabled"
+                    >
+                      <option
+                        v-for="opt in modelsByCliMap[cliKey]"
+                        :key="opt.value"
+                        :value="opt.value"
+                      >{{ opt.label }}</option>
+                    </select>
+                  </div>
+
+                  <div class="cc-field-row cc-field-row--inline">
+                    <label class="cc-field-label">Usar bypass por padrão</label>
+                    <label class="cc-toggle">
+                      <input
+                        type="checkbox"
+                        v-model="settings.clis[cliKey].defaultBypass"
+                        :disabled="!settings.clis[cliKey].enabled"
+                      />
+                      <span class="cc-toggle-track" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Seção 2: Token Budget ──────────────────────────────────── -->
+          <div v-show="activeNav === 'tokens'" class="cc-section">
+            <div class="cc-section-header">
+              <span class="cc-section-label">Token Budget</span>
+            </div>
+
+            <div class="cc-section-body">
               <div class="cc-field-row">
-                <label class="cc-field-label">Caminho do binário</label>
+                <label class="cc-field-label">
+                  Budget padrão por sessão
+                  <span class="cc-field-value-badge">{{ formatTokens(settings.tokenBudget) }}</span>
+                </label>
+                <div class="cc-slider-row">
+                  <span class="cc-slider-min">1k</span>
+                  <input
+                    class="cc-slider"
+                    type="range"
+                    min="1000"
+                    max="500000"
+                    step="1000"
+                    v-model.number="settings.tokenBudget"
+                  />
+                  <span class="cc-slider-max">500k</span>
+                </div>
                 <input
-                  class="cc-input"
-                  type="text"
-                  v-model="settings.clis[cliKey].binaryPath"
-                  :placeholder="cliKey === 'copilot' ? 'gh' : cliKey"
-                  :disabled="!settings.clis[cliKey].enabled"
+                  class="cc-input cc-input--number"
+                  type="number"
+                  min="1000"
+                  max="500000"
+                  step="1000"
+                  v-model.number="settings.tokenBudget"
                 />
               </div>
+            </div>
+          </div>
 
-              <div v-if="modelsByCliMap[cliKey].length > 0" class="cc-field-row">
-                <label class="cc-field-label">Modelo padrão</label>
-                <select
-                  class="cc-select"
-                  v-model="settings.clis[cliKey].defaultModel"
-                  :disabled="!settings.clis[cliKey].enabled"
-                >
+          <!-- ─── Seção 3: Orquestrador Padrão ──────────────────────────── -->
+          <div v-show="activeNav === 'orchestrator'" class="cc-section">
+            <div class="cc-section-header">
+              <span class="cc-section-label">Orquestrador Padrão</span>
+            </div>
+
+            <div class="cc-section-body">
+
+              <!-- CLI -->
+              <div class="cc-field-row">
+                <label class="cc-field-label">CLI</label>
+                <div class="cc-cli-radio-group">
+                  <label
+                    v-for="cli in cliOptions"
+                    :key="cli.id"
+                    class="cc-cli-radio"
+                    :class="{ selected: settings.defaultOrchestrator.cli === cli.id }"
+                  >
+                    <input
+                      type="radio"
+                      :value="cli.id"
+                      v-model="settings.defaultOrchestrator.cli"
+                      class="cc-radio-hidden"
+                      @change="onOrchestratorCliChange(cli.id)"
+                    />
+                    <span class="cc-cli-dot" :style="{ background: `var(--cli-${cli.id})` }" />
+                    <span class="cc-cli-radio-label">{{ cli.name }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Modelo -->
+              <div class="cc-field-row">
+                <label class="cc-field-label">Modelo</label>
+                <select class="cc-select" v-model="settings.defaultOrchestrator.model">
                   <option
-                    v-for="opt in modelsByCliMap[cliKey]"
+                    v-for="opt in currentOrchestratorModels"
                     :key="opt.value"
                     :value="opt.value"
                   >{{ opt.label }}</option>
                 </select>
               </div>
 
-              <div class="cc-field-row cc-field-row--inline">
-                <label class="cc-field-label">Usar bypass por padrão</label>
-                <label class="cc-toggle">
-                  <input
-                    type="checkbox"
-                    v-model="settings.clis[cliKey].defaultBypass"
-                    :disabled="!settings.clis[cliKey].enabled"
-                  />
-                  <span class="cc-toggle-track" />
-                </label>
+              <!-- Agente -->
+              <div class="cc-field-row">
+                <label class="cc-field-label">Agente</label>
+                <select class="cc-select" v-model="settings.defaultOrchestrator.agentFile">
+                  <option :value="null">Nenhum</option>
+                  <optgroup label="Pessoal">
+                    <option value="pessoal/.agent/claudicaro.md">claudicaro (padrão)</option>
+                  </optgroup>
+                  <optgroup label="DSG">
+                    <option value="dsg/.agent/tech-lead.md">tech-lead</option>
+                    <option value="dsg/.agent/especialista-deposito.md">especialista-deposito</option>
+                    <option value="dsg/.agent/especialista-banco-de-dados.md">especialista-banco-de-dados</option>
+                    <option value="dsg/.agent/especialista-cache.md">especialista-cache</option>
+                    <option value="dsg/.agent/especialista-filas.md">especialista-filas</option>
+                    <option value="dsg/.agent/especialista-frontend.md">especialista-frontend</option>
+                    <option value="dsg/.agent/especialista-arquitetura.md">especialista-arquitetura</option>
+                    <option value="dsg/.agent/especialista-grupos-permissoes.md">especialista-grupos-permissoes</option>
+                    <option value="dsg/.agent/especialista-reserva-horario.md">especialista-reserva-horario</option>
+                    <option value="dsg/.agent/especialista-luma.md">especialista-luma</option>
+                    <option value="dsg/.agent/especialista-traceai.md">especialista-traceai</option>
+                  </optgroup>
+                  <optgroup label="CAST">
+                    <option value="cast/.agent/tech-lead.md">tech-lead</option>
+                    <option value="cast/.agent/especialista-sgsa.md">especialista-sgsa</option>
+                    <option value="cast/.agent/especialista-contratos.md">especialista-contratos</option>
+                    <option value="cast/.agent/especialista-sisdoc.md">especialista-sisdoc</option>
+                  </optgroup>
+                </select>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ─── Seção 2: Token Budget ──────────────────────────────────── -->
-      <div class="cc-section">
-        <button class="cc-section-toggle" @click="toggleSection('tokens')">
-          <span class="cc-section-label">Token Budget</span>
-          <span class="cc-section-chevron" :class="{ open: openSections.tokens }">›</span>
-        </button>
-
-        <div v-if="openSections.tokens" class="cc-section-body">
-          <div class="cc-field-row">
-            <label class="cc-field-label">
-              Budget padrão por sessão
-              <span class="cc-field-value-badge">{{ formatTokens(settings.tokenBudget) }}</span>
-            </label>
-            <div class="cc-slider-row">
-              <span class="cc-slider-min">1k</span>
-              <input
-                class="cc-slider"
-                type="range"
-                min="1000"
-                max="500000"
-                step="1000"
-                v-model.number="settings.tokenBudget"
-              />
-              <span class="cc-slider-max">500k</span>
-            </div>
-            <input
-              class="cc-input cc-input--number"
-              type="number"
-              min="1000"
-              max="500000"
-              step="1000"
-              v-model.number="settings.tokenBudget"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── Seção 3: Orquestrador Padrão ──────────────────────────── -->
-      <div class="cc-section">
-        <button class="cc-section-toggle" @click="toggleSection('orchestrator')">
-          <span class="cc-section-label">Orquestrador Padrão</span>
-          <span class="cc-section-chevron" :class="{ open: openSections.orchestrator }">›</span>
-        </button>
-
-        <div v-if="openSections.orchestrator" class="cc-section-body">
-
-          <!-- CLI -->
-          <div class="cc-field-row">
-            <label class="cc-field-label">CLI</label>
-            <div class="cc-cli-radio-group">
-              <label
-                v-for="cli in cliOptions"
-                :key="cli.id"
-                class="cc-cli-radio"
-                :class="{ selected: settings.defaultOrchestrator.cli === cli.id }"
-              >
-                <input
-                  type="radio"
-                  :value="cli.id"
-                  v-model="settings.defaultOrchestrator.cli"
-                  class="cc-radio-hidden"
-                  @change="onOrchestratorCliChange(cli.id)"
-                />
-                <span class="cc-cli-dot" :style="{ background: `var(--cli-${cli.id})` }" />
-                <span class="cc-cli-radio-label">{{ cli.name }}</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Modelo -->
-          <div class="cc-field-row">
-            <label class="cc-field-label">Modelo</label>
-            <select class="cc-select" v-model="settings.defaultOrchestrator.model">
-              <option
-                v-for="opt in currentOrchestratorModels"
-                :key="opt.value"
-                :value="opt.value"
-              >{{ opt.label }}</option>
-            </select>
-          </div>
-
-          <!-- Agente -->
-          <div class="cc-field-row">
-            <label class="cc-field-label">Agente</label>
-            <select class="cc-select" v-model="settings.defaultOrchestrator.agentFile">
-              <option :value="null">Nenhum</option>
-              <optgroup label="Pessoal">
-                <option value="pessoal/.agent/claudicaro.md">claudicaro (padrão)</option>
-              </optgroup>
-              <optgroup label="DSG">
-                <option value="dsg/.agent/tech-lead.md">tech-lead</option>
-                <option value="dsg/.agent/especialista-deposito.md">especialista-deposito</option>
-                <option value="dsg/.agent/especialista-banco-de-dados.md">especialista-banco-de-dados</option>
-                <option value="dsg/.agent/especialista-cache.md">especialista-cache</option>
-                <option value="dsg/.agent/especialista-filas.md">especialista-filas</option>
-                <option value="dsg/.agent/especialista-frontend.md">especialista-frontend</option>
-                <option value="dsg/.agent/especialista-arquitetura.md">especialista-arquitetura</option>
-                <option value="dsg/.agent/especialista-grupos-permissoes.md">especialista-grupos-permissoes</option>
-                <option value="dsg/.agent/especialista-reserva-horario.md">especialista-reserva-horario</option>
-                <option value="dsg/.agent/especialista-luma.md">especialista-luma</option>
-                <option value="dsg/.agent/especialista-traceai.md">especialista-traceai</option>
-              </optgroup>
-              <optgroup label="CAST">
-                <option value="cast/.agent/tech-lead.md">tech-lead</option>
-                <option value="cast/.agent/especialista-sgsa.md">especialista-sgsa</option>
-                <option value="cast/.agent/especialista-contratos.md">especialista-contratos</option>
-                <option value="cast/.agent/especialista-sisdoc.md">especialista-sisdoc</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <!-- Modo de permissão -->
-          <div class="cc-field-row">
-            <label class="cc-field-label">Modo de permissão</label>
-            <div class="cc-perm-radio-group">
-              <label
-                v-for="opt in permissionOptions"
-                :key="opt.value"
-                class="cc-perm-radio"
-                :class="{ selected: settings.defaultOrchestrator.permissionMode === opt.value }"
-              >
-                <input
-                  type="radio"
-                  :value="opt.value"
-                  v-model="settings.defaultOrchestrator.permissionMode"
-                  class="cc-radio-hidden"
-                />
-                <div class="cc-radio-dot" />
-                <div class="cc-perm-info">
-                  <span class="cc-perm-label">{{ opt.label }}</span>
-                  <span class="cc-perm-desc">{{ opt.desc }}</span>
+              <!-- Modo de permissão -->
+              <div class="cc-field-row">
+                <label class="cc-field-label">Modo de permissão</label>
+                <div class="cc-perm-radio-group">
+                  <label
+                    v-for="opt in permissionOptions"
+                    :key="opt.value"
+                    class="cc-perm-radio"
+                    :class="{ selected: settings.defaultOrchestrator.permissionMode === opt.value }"
+                  >
+                    <input
+                      type="radio"
+                      :value="opt.value"
+                      v-model="settings.defaultOrchestrator.permissionMode"
+                      class="cc-radio-hidden"
+                    />
+                    <div class="cc-radio-dot" />
+                    <div class="cc-perm-info">
+                      <span class="cc-perm-label">{{ opt.label }}</span>
+                      <span class="cc-perm-desc">{{ opt.desc }}</span>
+                    </div>
+                  </label>
                 </div>
-              </label>
+              </div>
+
             </div>
           </div>
-
         </div>
-      </div>
-    </div>
 
-    <!-- ─── Footer ──────────────────────────────────────────────────── -->
-    <div class="cc-settings-footer">
-      <button class="cc-btn-reset" @click="resetDefaults">Restaurar padrões</button>
-      <div class="cc-footer-right">
-        <transition name="cc-fade">
-          <span v-if="savedFeedback" class="cc-saved-badge">Salvo!</span>
-        </transition>
-        <button class="cc-btn-save" @click="save">Salvar</button>
+        <!-- Footer -->
+        <div class="cc-settings-footer">
+          <button class="cc-btn-reset" @click="resetDefaults">Restaurar padrões</button>
+          <div class="cc-footer-right">
+            <transition name="cc-fade">
+              <span v-if="savedFeedback" class="cc-saved-badge">Salvo!</span>
+            </transition>
+            <transition name="cc-fade">
+              <span v-if="saveError" class="cc-saved-badge cc-saved-badge--error">Erro ao salvar</span>
+            </transition>
+            <button class="cc-btn-save" @click="save">Salvar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -245,15 +261,19 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
 }
 
+// ─── Nav state ───────────────────────────────────────────────────────────
+const activeNav = ref('clis')
+
+const navItems = [
+  { id: 'clis', label: 'CLIs' },
+  { id: 'tokens', label: 'Token Budget' },
+  { id: 'orchestrator', label: 'Orquestrador' },
+]
+
 // ─── State ────────────────────────────────────────────────────────────────
 const settings = reactive<AppSettings>(structuredClone(DEFAULT_SETTINGS))
 const savedFeedback = ref(false)
-
-const openSections = reactive({
-  clis: true,
-  tokens: false,
-  orchestrator: false,
-})
+const saveError = ref(false)
 
 // ─── Constants ───────────────────────────────────────────────────────────
 const cliKeys = ['claude', 'gemini', 'copilot'] as const
@@ -296,10 +316,6 @@ const currentOrchestratorModels = computed(() =>
 )
 
 // ─── Methods ─────────────────────────────────────────────────────────────
-function toggleSection(key: keyof typeof openSections) {
-  openSections[key] = !openSections[key]
-}
-
 function formatTokens(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(0)}k`
   return String(n)
@@ -323,9 +339,15 @@ function applySettings(loaded: AppSettings) {
 }
 
 async function save() {
-  await window.claudicaro.settings.save({ ...settings } as AppSettings)
-  savedFeedback.value = true
-  setTimeout(() => { savedFeedback.value = false }, 2000)
+  saveError.value = false
+  try {
+    await window.claudicaro.settings.save({ ...settings } as AppSettings)
+    savedFeedback.value = true
+    setTimeout(() => { savedFeedback.value = false }, 2000)
+  } catch {
+    saveError.value = true
+    setTimeout(() => { saveError.value = false }, 3000)
+  }
 }
 
 function resetDefaults() {
@@ -349,32 +371,84 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
   background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-sans);
 }
 
-.cc-settings-header {
-  padding: var(--s-6) var(--s-7) var(--s-4);
-  border-bottom: 1px solid var(--border);
+.cc-settings-header-bar {
+  height: var(--titlebar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  -webkit-app-region: drag;
   flex-shrink: 0;
 }
 
-.cc-settings-title {
-  display: block;
-  font-size: var(--fs-xl);
+.cc-settings-header-title {
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--s-1);
 }
 
-.cc-settings-subtitle {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
+.cc-settings-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cc-settings-nav {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-sidebar);
+  padding: 12px 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cc-settings-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.1s, color 0.1s;
+}
+
+.cc-settings-nav-item:hover {
+  background: var(--bg-hover);
+}
+
+.cc-settings-nav-item.active {
+  background: var(--vibrancy-strong);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.cc-settings-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .cc-settings-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--s-5) var(--s-7);
   display: flex;
@@ -382,7 +456,7 @@ onMounted(async () => {
   gap: var(--s-3);
 }
 
-/* ─── Section accordion ───────────────────────────────────────────────── */
+/* ─── Section ─────────────────────────────────────────────────────────── */
 .cc-section {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -390,45 +464,21 @@ onMounted(async () => {
   background: var(--bg-surface);
 }
 
-.cc-section-toggle {
+.cc-section-header {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: var(--s-4) var(--s-5);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  font-family: var(--font-sans);
-  transition: background 0.12s;
-}
-
-.cc-section-toggle:hover {
-  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
 }
 
 .cc-section-label {
   font-size: var(--fs-md);
   font-weight: 600;
-}
-
-.cc-section-chevron {
-  font-size: 18px;
-  color: var(--text-muted);
-  transition: transform 0.2s;
-  display: inline-block;
-  transform: rotate(90deg);
-}
-
-.cc-section-chevron.open {
-  transform: rotate(-90deg);
+  color: var(--text-primary);
 }
 
 .cc-section-body {
-  border-top: 1px solid var(--border);
   padding: var(--s-5);
   display: flex;
   flex-direction: column;
@@ -797,6 +847,10 @@ onMounted(async () => {
   font-size: var(--fs-sm);
   color: var(--accent);
   font-weight: 500;
+}
+
+.cc-saved-badge--error {
+  color: var(--error);
 }
 
 /* ─── Transition ──────────────────────────────────────────────────────── */
