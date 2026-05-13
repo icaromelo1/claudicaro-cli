@@ -6,6 +6,9 @@ import { dispatcher } from './dispatcher/index.js'
 import { ClaudeAdapter, GeminiAdapter, CopilotAdapter } from './adapters/index.js'
 import { SessionManager, TokenTracker } from './session/index.js'
 import { logger } from './dispatcher/logger.js'
+import { googleAuth } from './auth/index.js'
+import { settingsStore } from './config/index.js'
+import type { AppSettings } from './config/index.js'
 
 const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
@@ -80,6 +83,13 @@ function setupIpcHandlers(): void {
   ipcMain.handle('cc:logs', async (_, { limit }: { limit?: number } = {}) => {
     return logger.getLogs(limit)
   })
+
+  ipcMain.handle('cc:auth:signin', async () => googleAuth.signIn())
+  ipcMain.handle('cc:auth:signout', () => { googleAuth.signOut(); return null })
+  ipcMain.handle('cc:auth:state', () => googleAuth.getState())
+
+  ipcMain.handle('cc:settings:get', async () => settingsStore.get())
+  ipcMain.handle('cc:settings:save', async (_, settings: AppSettings) => settingsStore.save(settings))
 }
 
 async function createWindow() {

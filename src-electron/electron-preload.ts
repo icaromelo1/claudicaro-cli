@@ -30,6 +30,17 @@ const claudicaro = {
 
   logs: (limit?: number): Promise<unknown[]> =>
     ipcRenderer.invoke('cc:logs', { limit }),
+
+  auth: {
+    signIn: () => ipcRenderer.invoke('cc:auth:signin'),
+    signOut: () => ipcRenderer.invoke('cc:auth:signout'),
+    getState: () => ipcRenderer.invoke('cc:auth:state'),
+  },
+
+  settings: {
+    get: (): Promise<unknown> => ipcRenderer.invoke('cc:settings:get'),
+    save: (s: unknown): Promise<void> => ipcRenderer.invoke('cc:settings:save', s),
+  },
 }
 
 contextBridge.exposeInMainWorld('claudicaro', claudicaro)

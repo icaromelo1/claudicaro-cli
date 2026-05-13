@@ -1,3 +1,38 @@
+export interface CliSettings {
+  enabled: boolean
+  binaryPath: string
+  defaultModel: string
+  defaultBypass: boolean
+}
+
+export interface AppSettings {
+  clis: {
+    claude: CliSettings
+    gemini: CliSettings
+    copilot: CliSettings
+  }
+  tokenBudget: number
+  defaultOrchestrator: {
+    cli: string
+    model: string
+    agentFile: string | null
+    permissionMode: 'bypass' | 'normal' | 'ask'
+  }
+}
+
+export interface GoogleUser {
+  email: string
+  name: string
+  picture: string
+  sub: string
+}
+
+export interface AuthState {
+  user: GoogleUser | null
+  accessToken: string | null
+  expiresAt: number | null
+}
+
 export interface OrchestratorConfig {
   cli: 'claude' | 'gemini' | 'copilot'
   model: string
@@ -75,6 +110,15 @@ declare global {
       }
       health: () => Promise<Record<string, { available: boolean; version?: string; error?: string }>>
       logs: (limit?: number) => Promise<LogEntry[]>
+      auth: {
+        signIn: () => Promise<GoogleUser>
+        signOut: () => Promise<null>
+        getState: () => Promise<AuthState>
+      }
+      settings: {
+        get: () => Promise<AppSettings>
+        save: (s: AppSettings) => Promise<void>
+      }
     }
   }
 }
