@@ -17,29 +17,20 @@
 - [x] T8: Session Manager — done (SessionManager + MemoryWriteBuffer)
 
 ## Wave 5 ✅ CORE ✅ concluída
-- [x] T9: Integração Chat ↔ Dispatcher ↔ Adapters — done (IPC bridge, streaming, session persistence)
+- [x] T9: Integração Chat ↔ Dispatcher ↔ Adapters — done (IPC em src-electron/ipc/, useChat composable, streaming, session persistence)
 
 ---
 
 ## Wave 6 ✅ concluída
-- [x] T10: Tokens e Segurança — done (TokenTracker, budget por sessão, AuditLog)
-- [x] T11: Failover e Observabilidade — done (DispatcherLogger ring-buffer, HealthPage)
-- [x] T17: Conversation Config Modal — done (4 passos, migration orchestratorConfig, default claude-sonnet-4-6+bypass)
-       Modal ao criar nova conversa:
-         Passo 1 — CLI (Claude / Gemini / Copilot)
-         Passo 2 — Modelo (lista filtrada por CLI)
-         Passo 3 — Agente .agent/*.md (dropdown dos agentes indexados)
-         Passo 4 — Modo de permissão (bypass / normal / ask)
-         Default: claude-sonnet-4-6 + claudicaro + bypass
-       O CLI/modelo selecionado fica como orquestrador fixo da sessão,
-       sobrescrevendo o roteamento automático do dispatcher.
-       Persiste em Session.orchestratorConfig (JSON) no SQLite.
+- [x] T10: Tokens, Segurança e Sanitize layer — done (TokenTracker, sanitize/index.ts, security/index.ts, guardDispatch nos 3 adapters)
+- [x] T11: Failover e Observabilidade — done (failover.ts módulo separado, MetricsCollector ring-buffer, HealthPage)
+- [x] T12: Auth Google — done (OAuth2 Electron shell, servidor HTTP :9999, LoginPage.vue)
+- [x] T13: CLI Config Panel — done (SettingsStore JSON, SettingsPage 3 seções)
+- [x] T17: Conversation Config Modal — done (4 passos, orchestratorConfig, default claude-sonnet-4-6+bypass)
 
 ## Wave 7 ✅ concluída
-- [x] T12: Auth Google — done (OAuth2 Electron shell, servidor HTTP :9999, redirect callback)
-- [x] T13: CLI Config Panel — done (SettingsStore JSON, SettingsPage 3 seções)
-- [x] T14: Workflow Visual BPMN — done (SVG puro, failover toggle, tooltip routing rules)
+- [x] T14: Workflow Visual BPMN — done (WorkflowViewer.vue interativo: nodes animados, chat lateral, export Mermaid)
+- [x] T15: Testes + CI/CD — done (92 testes em tests/, E2E CLI health, GitHub Actions CI)
 
 ## Wave 8 ✅ concluída
-- [x] T15: Testes + CI/CD — done (46 testes passando: unit router/dispatcher/session, E2E CLI health, integration dispatch mock, GitHub Actions CI)
-- [x] T16: Operações e Manutenção — done (BackupManager, LogRotation, UpdateChecker, IPC handlers, scripts CLI)
+- [x] T16: Operações e Manutenção — done (BackupManager, LogRotation, UpdateChecker, docs/playbooks/)
