@@ -13,7 +13,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/auth',
-    component: () => import('pages/AuthPage.vue'),
+    component: () => import('pages/LoginPage.vue'),
   },
   {
     path: '/:catchAll(.*)*',
