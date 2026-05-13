@@ -1,5 +1,5 @@
 <template>
-  <div class="wv-root">
+  <div class="wv-root" :class="{ 'wv-compact': compact }">
     <!-- Header -->
     <div class="wv-header">
       <span class="wv-title">Fluxo do Dispatcher</span>
@@ -61,29 +61,31 @@
             </marker>
           </defs>
 
-          <!-- Edges -->
+          <!-- Edges: Input → Classify -->
           <line
-            :x1="cx(NODES.input)" :y1="by(NODES.input)"
-            :x2="cx(NODES.classify)" :y2="ty(NODES.classify)"
-            stroke="var(--border-strong)" stroke-width="1.5"
-            marker-end="url(#wv-arrow)"
-          />
-          <line
-            :x1="cx(NODES.classify)" :y1="by(NODES.classify)"
-            :x2="cx(NODES.router)" :y2="ty(NODES.router)"
+            :x1="rx(NODES.input)" :y1="my(NODES.input)"
+            :x2="lx(NODES.classify)" :y2="my(NODES.classify)"
             stroke="var(--border-strong)" stroke-width="1.5"
             marker-end="url(#wv-arrow)"
           />
 
+          <!-- Classify → Router (ponta esquerda do diamante) -->
+          <line
+            :x1="rx(NODES.classify)" :y1="my(NODES.classify)"
+            :x2="NODES.router.x - DIAMOND_W / 2" :y2="NODES.router.y"
+            stroke="var(--border-strong)" stroke-width="1.5"
+            marker-end="url(#wv-arrow)"
+          />
+
+          <!-- Router → CLIs -->
           <path
             :d="routerToCli(NODES.router, NODES.claude)"
             stroke="var(--cli-claude)" stroke-width="1.5" fill="none"
             marker-end="url(#wv-arrow)"
           />
-          <line
-            :x1="cx(NODES.router)" :y1="NODES.router.y + DIAMOND_H / 2"
-            :x2="cx(NODES.gemini)" :y2="ty(NODES.gemini)"
-            stroke="var(--cli-gemini)" stroke-width="1.5"
+          <path
+            :d="routerToCli(NODES.router, NODES.gemini)"
+            stroke="var(--cli-gemini)" stroke-width="1.5" fill="none"
             marker-end="url(#wv-arrow)"
           />
           <path
@@ -92,24 +94,25 @@
             marker-end="url(#wv-arrow)"
           />
 
-          <!-- Edge labels -->
-          <text :x="cx(NODES.claude) + NODE_W / 2 + 10" :y="ty(NODES.claude) - 8" class="wv-edge-label">code_review, debug</text>
-          <text :x="cx(NODES.gemini) + NODE_W / 2 + 10" :y="ty(NODES.gemini) - 8" class="wv-edge-label">web_search, vision</text>
-          <text :x="cx(NODES.copilot) + NODE_W / 2 + 10" :y="ty(NODES.copilot) - 8" class="wv-edge-label">shell, create_pr</text>
+          <!-- Edge labels (router → cli) -->
+          <text :x="NODES.claude.x + NODE_W / 2" :y="NODES.claude.y - 6" class="wv-edge-label" text-anchor="middle">code_review, debug</text>
+          <text :x="NODES.gemini.x + NODE_W / 2" :y="NODES.gemini.y - 6" class="wv-edge-label" text-anchor="middle">web_search, vision</text>
+          <text :x="NODES.copilot.x + NODE_W / 2" :y="NODES.copilot.y - 6" class="wv-edge-label" text-anchor="middle">shell, create_pr</text>
 
           <!-- Normal: CLIs → Result -->
           <template v-if="!showFailovers">
-            <path :d="cliToNode(NODES.claude, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToNode(NODES.gemini, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToNode(NODES.copilot, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.claude, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.gemini, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.copilot, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
           </template>
 
           <!-- Failover paths -->
           <template v-if="showFailovers">
-            <path :d="cliToNode(NODES.claude, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToNode(NODES.gemini, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToNode(NODES.copilot, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.claude, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.gemini, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.copilot, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
 
+            <!-- Failover → Redirect (Sim) -->
             <line
               :x1="NODES.failover.x - DIAMOND_W / 2"
               :y1="NODES.failover.y"
@@ -126,6 +129,7 @@
               text-anchor="end"
             >Sim</text>
 
+            <!-- Failover → Result (Não) -->
             <line
               :x1="NODES.failover.x + DIAMOND_W / 2"
               :y1="NODES.failover.y"
@@ -200,7 +204,7 @@
               :stroke="COLORS.border_strong"
               stroke-width="1.5"
             />
-            <text :x="cx(NODES.router)" :y="NODES.router.y" class="wv-node-label" text-anchor="middle" dominant-baseline="middle">
+            <text :x="NODES.router.x" :y="NODES.router.y" class="wv-node-label" text-anchor="middle" dominant-baseline="middle">
               Router
             </text>
           </g>
@@ -331,7 +335,7 @@
                 stroke-width="1.5"
                 stroke-opacity="0.8"
               />
-              <text :x="cx(NODES.failover)" :y="NODES.failover.y" class="wv-node-label wv-node-label--warn" text-anchor="middle" dominant-baseline="middle">
+              <text :x="NODES.failover.x" :y="NODES.failover.y" class="wv-node-label wv-node-label--warn" text-anchor="middle" dominant-baseline="middle">
                 Failover?
               </text>
             </g>
@@ -473,14 +477,14 @@ import type { MessageRecord } from 'src/types/claudicaro'
 
 // ── Props ────────────────────────────────────────────────────────────────────
 
-interface Props {
+const props = withDefaults(defineProps<{
   activeCli?: string
   sessionId?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
+  compact?: boolean
+}>(), {
   activeCli: '',
   sessionId: '',
+  compact: false,
 })
 
 // ── Quasar ───────────────────────────────────────────────────────────────────
@@ -489,75 +493,68 @@ const $q = useQuasar()
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const SVG_W = 780
-const NODE_W = 160
-const NODE_H = 48
-const DIAMOND_W = 90
-const DIAMOND_H = 54
-const COLS = {
-  left: 80,
-  center: (SVG_W - NODE_W) / 2,
-  right: SVG_W - NODE_W - 80,
-}
-const CENTER_X = SVG_W / 2
-
-const ROWS = {
-  input: 40,
-  classify: 130,
-  router: 225,
-  clis: 330,
-  failover: 450,
-  redirect: 530,
-  result: 530,
-}
+const SVG_W = 900
+const SVG_H = 320
+const NODE_W = 140
+const NODE_H = 44
+const DIAMOND_W = 80
+const DIAMOND_H = 50
 
 const COLORS = {
   border_strong: 'rgba(255,255,255,0.14)',
   warning: '#F5A524',
 }
 
+// ── Nodes (LR layout) ────────────────────────────────────────────────────────
+
 const NODES = {
-  input:    { x: CENTER_X - NODE_W / 2, y: ROWS.input },
-  classify: { x: CENTER_X - NODE_W / 2, y: ROWS.classify },
-  router:   { x: CENTER_X,              y: ROWS.router },
-  claude:   { x: COLS.left,             y: ROWS.clis },
-  gemini:   { x: CENTER_X - NODE_W / 2, y: ROWS.clis },
-  copilot:  { x: COLS.right,            y: ROWS.clis },
-  failover: { x: CENTER_X,              y: ROWS.failover },
-  redirect: { x: COLS.left,             y: ROWS.redirect },
-  result:   { x: COLS.right,            y: ROWS.result },
+  input:    { x: 40,  y: SVG_H / 2 - NODE_H / 2 },
+  classify: { x: 220, y: SVG_H / 2 - NODE_H / 2 },
+  router:   { x: 400 + DIAMOND_W / 2, y: SVG_H / 2 },  // centro do diamante
+  claude:   { x: 580, y: 40 },
+  gemini:   { x: 580, y: SVG_H / 2 - NODE_H / 2 },
+  copilot:  { x: 580, y: SVG_H - 40 - NODE_H },
+  result:   { x: 760, y: SVG_H / 2 - NODE_H / 2 },
+  // failover e redirect aparecem abaixo de claude quando showFailovers=true
+  failover: { x: 400 + DIAMOND_W / 2, y: SVG_H + 60 },  // centro do diamante failover
+  redirect: { x: 220, y: SVG_H + 40 },
 }
 
-// ── SVG helpers ──────────────────────────────────────────────────────────────
+// ── SVG helpers LR ───────────────────────────────────────────────────────────
 
 function cx(n: { x: number }): number { return n.x + NODE_W / 2 }
 function my(n: { y: number }): number { return n.y + NODE_H / 2 }
-function ty(n: { y: number }): number { return n.y }
-function by(n: { y: number }): number { return n.y + NODE_H }
+function rx(n: { x: number }): number { return n.x + NODE_W }
+function lx(n: { x: number }): number { return n.x }
 
 function diamondPoints(n: { x: number; y: number }): string {
   const { x, y } = n
-  return `${x},${y} ${x + DIAMOND_W / 2},${y - DIAMOND_H / 2} ${x + DIAMOND_W},${y} ${x + DIAMOND_W / 2},${y + DIAMOND_H / 2}`
+  return `${x - DIAMOND_W / 2},${y} ${x},${y - DIAMOND_H / 2} ${x + DIAMOND_W / 2},${y} ${x},${y + DIAMOND_H / 2}`
 }
 
 function routerToCli(router: { x: number; y: number }, cli: { x: number; y: number }): string {
-  const sx = router.x
-  const sy = router.y + DIAMOND_H / 2
-  const tx = cx(cli)
-  const ty2 = cli.y
-  const midY = sy + (ty2 - sy) / 2
-  return `M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty2}`
+  const sx = router.x + DIAMOND_W / 2  // borda direita do diamante
+  const sy = router.y
+  const tx = cli.x
+  const ty = cli.y + NODE_H / 2
+  const midX = (sx + tx) / 2
+  return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`
 }
 
-function cliToNode(cli: { x: number; y: number }, target: { x: number; y: number }): string {
-  const isTargetDiamond = target === NODES.failover
-  const sx = cx(cli)
-  const sy = cli.y + NODE_H
-  const tx = isTargetDiamond ? target.x : cx(target)
-  const ty2 = isTargetDiamond ? target.y + DIAMOND_H / 2 : target.y
-  const midY = sy + (ty2 - sy) / 2
-  return `M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty2}`
+function cliToResult(cli: { x: number; y: number }, target: { x: number; y: number }): string {
+  const sx = cli.x + NODE_W
+  const sy = cli.y + NODE_H / 2
+  // Se target é o failover (diamante), aponta para a esquerda do diamante
+  const isFailoverDiamond = target === NODES.failover
+  const tx = isFailoverDiamond ? target.x - DIAMOND_W / 2 : target.x
+  const ty = isFailoverDiamond ? target.y : target.y + NODE_H / 2
+  const midX = (sx + tx) / 2
+  return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`
 }
+
+// ── svgHeight computed ───────────────────────────────────────────────────────
+
+const svgHeight = computed(() => showFailovers.value ? SVG_H + 160 : SVG_H)
 
 // ── Tooltip data ─────────────────────────────────────────────────────────────
 
@@ -647,8 +644,6 @@ const showChat = ref(false)
 const svgEl = ref<SVGSVGElement | null>(null)
 const selectedNode = ref<string | null>(null)
 
-const svgHeight = computed(() => showFailovers.value ? 640 : 450)
-
 const detailNode = computed(() =>
   selectedNode.value && TOOLTIP_DATA[selectedNode.value] ? selectedNode.value : null
 )
@@ -706,7 +701,7 @@ function hideTooltip() {
 
 // ── Export Mermaid ────────────────────────────────────────────────────────────
 
-const MERMAID_DIAGRAM = `graph TD
+const MERMAID_DIAGRAM = `graph LR
   Input[Entrada do usuário] --> Classifier[Classificador de Task]
   Classifier --> Router[Router]
   Router --> Claude[Claude CLI]
@@ -842,6 +837,11 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* ── Compact mode ── */
+.wv-compact .wv-header { display: none; }
+.wv-compact .wv-chat { display: none; }
+.wv-compact { pointer-events: none; }
+
 /* ── Header ── */
 .wv-header {
   height: var(--titlebar-h);
@@ -967,7 +967,7 @@ onMounted(() => {
 
 .wv-svg {
   width: 100%;
-  max-width: 780px;
+  max-width: 900px;
   height: auto;
   flex-shrink: 0;
 }
@@ -1247,7 +1247,7 @@ onMounted(() => {
   opacity: 0;
 }
 
-/* ── SVG text classes (accessed via :deep from parent or via class on SVG text) ── */
+/* ── SVG text classes ── */
 :deep(.wv-node-label) {
   font-family: var(--font-sans);
   font-size: 12px;

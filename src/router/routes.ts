@@ -9,6 +9,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'health', component: () => import('pages/HealthPage.vue') },
       { path: 'settings', component: () => import('pages/SettingsPage.vue') },
       { path: 'workflow', component: () => import('pages/WorkflowPage.vue') },
+      { path: 'history', component: () => import('pages/HistoricoPage.vue') },
     ]
   },
   {
