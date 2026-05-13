@@ -7,14 +7,41 @@ datasource db {
 }
 
 model Session {
-  id                  String    @id @default(cuid())
-  title               String    @default("Nova conversa")
-  orchestratorConfig  String?   // JSON: { cli, model, agentFile, permissionMode }
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                  String         @id @default(cuid())
+  title               String         @default("Nova conversa")
+  orchestratorConfig  String?
+  deletedAt           DateTime?
+  pinnedAt            DateTime?
+  groupId             String?
+  workingDir          String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
   messages            Message[]
   memories            Memory[]
   agentSnaps          AgentSnapshot[]
+  cliSessions         CliSession[]
+  group               SessionGroup?  @relation(fields: [groupId], references: [id])
+}
+
+model SessionGroup {
+  id        String    @id @default(cuid())
+  name      String
+  color     String    @default("#3FCF8E")
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+}
+
+model CliSession {
+  id                   String   @id @default(cuid())
+  claudicaroSessionId  String
+  cli                  String
+  cliSessionId         String
+  msgIndex             Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  session              Session  @relation(fields: [claudicaroSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([claudicaroSessionId, cli])
 }
 
 model Message {

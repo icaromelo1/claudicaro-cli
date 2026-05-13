@@ -19,10 +19,14 @@ import AppSidebar from 'src/components/AppSidebar.vue'
 import { useSessions } from 'src/composables/useSessions'
 
 const route = useRoute()
-const { createSession } = useSessions()
+const { createSession, sessions, currentSessionId } = useSessions()
 const sidebarExpanded = ref(true)
 
 async function handleNewSession() {
+  const current = sessions.value.find((s) => s.id === currentSessionId.value)
+  if (current && current.messageCount === 0) {
+    return
+  }
   await createSession({ title: 'Nova conversa' })
 }
 </script>

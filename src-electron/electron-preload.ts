@@ -21,6 +21,25 @@ const claudicaro = {
       ipcRenderer.invoke('cc:session:list'),
     history: (sessionId: string): Promise<unknown[]> =>
       ipcRenderer.invoke('cc:session:history', { sessionId }),
+    delete: (id: string): Promise<null> =>
+      ipcRenderer.invoke('cc:session:delete', { id }),
+    rename: (id: string, title: string): Promise<null> =>
+      ipcRenderer.invoke('cc:session:rename', { id, title }),
+    pin: (id: string, pinned: boolean): Promise<null> =>
+      ipcRenderer.invoke('cc:session:pin', { id, pinned }),
+    search: (query: string): Promise<unknown[]> =>
+      ipcRenderer.invoke('cc:session:search', { query }),
+    openDir: (sessionId: string): Promise<null> =>
+      ipcRenderer.invoke('cc:session:open-dir', { sessionId }),
+    moveGroup: (sessionId: string, groupId: string | null): Promise<null> =>
+      ipcRenderer.invoke('cc:session:move-group', { sessionId, groupId }),
+  },
+
+  group: {
+    create: (name: string, color?: string): Promise<{ id: string; name: string; color: string }> =>
+      ipcRenderer.invoke('cc:group:create', { name, color }),
+    list: (): Promise<{ id: string; name: string; color: string }[]> =>
+      ipcRenderer.invoke('cc:group:list'),
   },
 
   tokens: {

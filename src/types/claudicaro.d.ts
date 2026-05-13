@@ -74,12 +74,21 @@ export interface DispatchResult {
   }
 }
 
+export interface SessionGroup {
+  id: string
+  name: string
+  color: string
+}
+
 export interface SessionSummary {
   id: string
   title: string
   createdAt: Date
   messageCount: number
   orchestratorConfig?: string
+  pinnedAt?: Date
+  groupId?: string
+  workingDir?: string
 }
 
 export interface MessageRecord {
@@ -111,6 +120,16 @@ declare global {
         create: (title?: string, orchestratorConfig?: string) => Promise<{ id: string; title: string; orchestratorConfig?: string }>
         list: () => Promise<SessionSummary[]>
         history: (sessionId: string) => Promise<MessageRecord[]>
+        delete: (id: string) => Promise<null>
+        rename: (id: string, title: string) => Promise<null>
+        pin: (id: string, pinned: boolean) => Promise<null>
+        search: (query: string) => Promise<SessionSummary[]>
+        openDir: (sessionId: string) => Promise<null>
+        moveGroup: (sessionId: string, groupId: string | null) => Promise<null>
+      }
+      group: {
+        create: (name: string, color?: string) => Promise<SessionGroup>
+        list: () => Promise<SessionGroup[]>
       }
       tokens: {
         budget: (sessionId: string) => Promise<SessionBudget>

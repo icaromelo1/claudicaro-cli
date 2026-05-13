@@ -1,4 +1,5 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell } from 'electron'
+import os from 'os'
 import type { Dispatcher } from '../dispatcher/index.js'
 import type { SessionManager } from '../session/session-manager.js'
 import type { TokenTracker } from '../session/token-tracker.js'
@@ -103,6 +104,46 @@ export function setupIpcHandlers(
     } catch (err) {
       return { success: false, error: (err as Error).message }
     }
+  })
+
+  ipcMain.handle('cc:session:delete', async (_, { id }: { id: string }) => {
+    await sessionManager.deleteSession(id)
+    return null
+  })
+
+  ipcMain.handle('cc:session:rename', async (_, { id, title }: { id: string; title: string }) => {
+    await sessionManager.renameSession(id, title)
+    return null
+  })
+
+  ipcMain.handle('cc:session:pin', async (_, { id, pinned }: { id: string; pinned: boolean }) => {
+    await sessionManager.pinSession(id, pinned)
+    return null
+  })
+
+  ipcMain.handle('cc:session:search', async (_, { query }: { query: string }) => {
+    return sessionManager.searchSessions(query)
+  })
+
+  ipcMain.handle('cc:session:open-dir', async (_, { sessionId }: { sessionId: string }) => {
+    const sessions = await sessionManager.listSessions()
+    const session = sessions.find((s) => s.id === sessionId)
+    const dir = (session as { workingDir?: string })?.workingDir ?? os.homedir()
+    await shell.openPath(dir)
+    return null
+  })
+
+  ipcMain.handle('cc:group:create', async (_, { name, color }: { name: string; color?: string }) => {
+    return sessionManager.createGroup(name, color)
+  })
+
+  ipcMain.handle('cc:group:list', async () => {
+    return sessionManager.listGroups()
+  })
+
+  ipcMain.handle('cc:session:move-group', async (_, { sessionId, groupId }: { sessionId: string; groupId: string | null }) => {
+    await sessionManager.moveToGroup(sessionId, groupId)
+    return null
   })
 
   ipcMain.handle('cc:maintenance:backup', async (_, { destDir }: { destDir?: string } = {}) => {

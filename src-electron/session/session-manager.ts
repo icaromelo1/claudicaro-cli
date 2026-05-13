@@ -37,7 +37,8 @@ export class SessionManager extends EventEmitter {
 
   async listSessions(): Promise<SessionSummary[]> {
     const sessions = await prisma.session.findMany({
-      orderBy: { updatedAt: 'desc' },
+      where: { deletedAt: null },
+      orderBy: [{ pinnedAt: 'desc' }, { updatedAt: 'desc' }],
       include: { _count: { select: { messages: true } } }
     })
 
@@ -45,7 +46,82 @@ export class SessionManager extends EventEmitter {
       id: s.id,
       title: s.title,
       createdAt: s.createdAt,
-      messageCount: s._count.messages
+      messageCount: s._count.messages,
+      pinnedAt: s.pinnedAt ?? undefined,
+      groupId: s.groupId ?? undefined,
+      workingDir: s.workingDir ?? undefined,
+    }))
+  }
+
+  async deleteSession(id: string): Promise<void> {
+    await prisma.session.update({ where: { id }, data: { deletedAt: new Date() } })
+  }
+
+  async renameSession(id: string, title: string): Promise<void> {
+    await prisma.session.update({ where: { id }, data: { title } })
+  }
+
+  async pinSession(id: string, pinned: boolean): Promise<void> {
+    await prisma.session.update({ where: { id }, data: { pinnedAt: pinned ? new Date() : null } })
+  }
+
+  async createGroup(name: string, color?: string): Promise<{ id: string; name: string; color: string }> {
+    return prisma.sessionGroup.create({ data: { name, color: color ?? '#3FCF8E' } })
+  }
+
+  async listGroups(): Promise<{ id: string; name: string; color: string }[]> {
+    return prisma.sessionGroup.findMany({ orderBy: { createdAt: 'asc' } })
+  }
+
+  async moveToGroup(sessionId: string, groupId: string | null): Promise<void> {
+    await prisma.session.update({ where: { id: sessionId }, data: { groupId } })
+  }
+
+  async searchSessions(query: string): Promise<SessionSummary[]> {
+    const sessions = await prisma.session.findMany({
+      where: { deletedAt: null, title: { contains: query } },
+      orderBy: { updatedAt: 'desc' },
+      include: { _count: { select: { messages: true } } }
+    })
+    return sessions.map((s) => ({
+      id: s.id,
+      title: s.title,
+      createdAt: s.createdAt,
+      messageCount: s._count.messages,
+      pinnedAt: s.pinnedAt ?? undefined,
+      groupId: s.groupId ?? undefined,
+      workingDir: s.workingDir ?? undefined,
+    }))
+  }
+
+  async saveCliSession(claudicaroSessionId: string, cli: string, cliSessionId: string): Promise<void> {
+    await prisma.cliSession.upsert({
+      where: { claudicaroSessionId_cli: { claudicaroSessionId, cli } },
+      create: { claudicaroSessionId, cli, cliSessionId },
+      update: { cliSessionId, updatedAt: new Date() },
+    })
+  }
+
+  async getCliSession(claudicaroSessionId: string, cli: string): Promise<string | null> {
+    const cs = await prisma.cliSession.findUnique({
+      where: { claudicaroSessionId_cli: { claudicaroSessionId, cli } }
+    })
+    return cs?.cliSessionId ?? null
+  }
+
+  async getLastNMessages(sessionId: string, n: number): Promise<MessageRecord[]> {
+    const messages = await prisma.message.findMany({
+      where: { sessionId },
+      orderBy: { createdAt: 'desc' },
+      take: n,
+    })
+    return messages.reverse().map((m) => ({
+      id: m.id,
+      sessionId: m.sessionId,
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+      cli: m.cli ?? undefined,
+      createdAt: m.createdAt,
     }))
   }
 
