@@ -341,7 +341,9 @@ function applySettings(loaded: AppSettings) {
 async function save() {
   saveError.value = false
   try {
-    await window.claudicaro.settings.save({ ...settings } as AppSettings)
+    const plain = JSON.parse(JSON.stringify(settings)) as AppSettings
+    const result = await window.claudicaro.settings.save(plain) as { success: boolean; error?: string } | void
+    if (result && !result.success) throw new Error(result.error ?? 'Falha desconhecida')
     savedFeedback.value = true
     setTimeout(() => { savedFeedback.value = false }, 2000)
   } catch {

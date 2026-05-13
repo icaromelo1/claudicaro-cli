@@ -14,37 +14,56 @@ export function setupIpcHandlers(
   googleAuth: GoogleAuth,
   settingsStore: SettingsStore,
 ): void {
+  const controllers = new Map<string, AbortController>()
+
   ipcMain.handle('cc:dispatch', async (event, { task, sessionId, forceCli }: { task: string; sessionId: string; forceCli?: string }) => {
     await sessionManager.persistMessage(sessionId, { role: 'user', content: task })
 
-    const result = await dispatcher.dispatch({
-      task,
-      sessionId,
-      forceCli,
-      onToken: (chunk) => event.sender.send('cc:token', { chunk, sessionId }),
-    })
+    const controller = new AbortController()
+    controllers.set(sessionId, controller)
 
-    await sessionManager.persistMessage(sessionId, {
-      role: 'assistant',
-      content: result.content,
-      cli: result.cli,
-      model: result.model,
-      routingMeta: result.routingMeta,
-      tokens: result.tokens,
-      latencyMs: result.latencyMs,
-    })
-
-    if (result.tokens != null) {
-      await tokenTracker.track({
+    try {
+      const result = await dispatcher.dispatch({
+        task,
         sessionId,
+        forceCli,
+        abortSignal: controller.signal,
+        onToken: (chunk) => event.sender.send('cc:token', { chunk, sessionId }),
+      })
+
+      await sessionManager.persistMessage(sessionId, {
+        role: 'assistant',
+        content: result.content,
         cli: result.cli,
+        model: result.model,
+        routingMeta: result.routingMeta,
         tokens: result.tokens,
         latencyMs: result.latencyMs,
-        timestamp: new Date(),
       })
-    }
 
-    return result
+      if (result.tokens != null) {
+        await tokenTracker.track({
+          sessionId,
+          cli: result.cli,
+          tokens: result.tokens,
+          latencyMs: result.latencyMs,
+          timestamp: new Date(),
+        })
+      }
+
+      return result
+    } finally {
+      controllers.delete(sessionId)
+    }
+  })
+
+  ipcMain.handle('cc:dispatch:cancel', async (_, { sessionId }: { sessionId: string }) => {
+    const controller = controllers.get(sessionId)
+    if (controller) {
+      controller.abort()
+      controllers.delete(sessionId)
+    }
+    return null
   })
 
   ipcMain.handle('cc:session:create', async (_, { title, orchestratorConfig }: { title?: string; orchestratorConfig?: string }) => {
@@ -77,7 +96,14 @@ export function setupIpcHandlers(
   ipcMain.handle('cc:auth:state', () => googleAuth.getState())
 
   ipcMain.handle('cc:settings:get', async () => settingsStore.get())
-  ipcMain.handle('cc:settings:save', async (_, settings: AppSettings) => settingsStore.save(settings))
+  ipcMain.handle('cc:settings:save', async (_, settings: AppSettings) => {
+    try {
+      await settingsStore.save(settings)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: (err as Error).message }
+    }
+  })
 
   ipcMain.handle('cc:maintenance:backup', async (_, { destDir }: { destDir?: string } = {}) => {
     const { BackupManager } = await import('../maintenance/backup.js')

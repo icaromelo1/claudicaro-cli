@@ -1,8 +1,6 @@
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-import { fileURLToPath } from 'url'
-
-const currentDir = fileURLToPath(new URL('.', import.meta.url))
+import { app } from 'electron'
 
 export interface CliSettings {
   enabled: boolean
@@ -42,11 +40,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
 }
 
 export class SettingsStore {
-  private settingsPath: string
-
-  constructor() {
-    const configDir = path.resolve(currentDir, '../../config')
-    this.settingsPath = path.join(configDir, 'settings.json')
+  private get settingsPath(): string {
+    return path.join(app.getPath('userData'), 'settings.json')
   }
 
   async load(): Promise<AppSettings> {
@@ -62,9 +57,9 @@ export class SettingsStore {
   }
 
   async save(settings: AppSettings): Promise<void> {
-    const dir = path.dirname(this.settingsPath)
-    await mkdir(dir, { recursive: true })
-    await writeFile(this.settingsPath, JSON.stringify(settings, null, 2), 'utf-8')
+    const p = this.settingsPath
+    await mkdir(path.dirname(p), { recursive: true })
+    await writeFile(p, JSON.stringify(settings, null, 2), 'utf-8')
   }
 
   async get(): Promise<AppSettings> {
