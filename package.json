@@ -10,7 +10,9 @@
     "dev": "quasar dev -m electron",
     "build": "quasar build -m electron",
     "lint": "eslint --ext .js,.ts,.vue ./",
-    "format": "prettier --write \"**/*.{js,ts,vue,scss,html,json,md}\""
+    "format": "prettier --write \"**/*.{js,ts,vue,scss,html,json,md}\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",
@@ -42,6 +44,7 @@
     "prisma": "^7.8.0",
     "sass": "^1.77.0",
     "typescript": "^5.4.0",
+    "vitest": "^4.1.6",
     "vue-tsc": "^2.0.0"
   },
   "engines": {
