@@ -146,7 +146,9 @@
 
     <!-- User footer -->
     <div class="cc-sidebar-footer">
-      <div class="cc-user-avatar">I</div>
+      <button class="cc-user-avatar-btn" @click="showProfile = true" title="Perfil">
+        <div class="cc-user-avatar">I</div>
+      </button>
       <div v-show="expanded !== false" class="cc-user-info">
         <span class="cc-user-name">Icaro</span>
         <span class="cc-user-status">
@@ -161,6 +163,8 @@
         </svg>
       </button>
     </div>
+
+    <UserProfileModal v-if="showProfile" @close="showProfile = false" />
   </aside>
 </template>
 
@@ -169,6 +173,7 @@ import { ref, computed, watch } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
 import type { SessionSummary, SessionGroup } from 'src/types/claudicaro'
 import SessionRow from './SessionRow.vue'
+import UserProfileModal from './UserProfileModal.vue'
 
 const props = defineProps<{ showSessions?: boolean; expanded?: boolean }>()
 const emit = defineEmits<{ 'new-session': []; toggle: [] }>()
@@ -177,6 +182,7 @@ const { sessions, groups, currentSessionId, selectSession, renameSession, pinSes
 
 const searchQuery = ref('')
 const collapsedGroups = ref(new Set<string>())
+const showProfile = ref(false)
 
 let debounceTimer: ReturnType<typeof setTimeout>
 const filteredSessions = ref<SessionSummary[]>(sessions.value)
@@ -605,6 +611,22 @@ const navItems = [
   flex-shrink: 0;
 }
 
+.cc-user-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.15s;
+}
+
+.cc-user-avatar-btn:hover {
+  opacity: 0.8;
+}
+
 .cc-user-avatar {
   width: 26px;
   height: 26px;
@@ -615,7 +637,6 @@ const navItems = [
   font-size: 11px;
   font-weight: 600;
   color: white;
-  flex-shrink: 0;
 }
 
 .cc-user-info {
