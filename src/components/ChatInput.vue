@@ -62,10 +62,21 @@
             </div>
           </div>
 
+          <!-- Stop btn (durante loading) -->
+          <button
+            v-if="disabled"
+            class="cc-send-btn cc-send-btn--stop"
+            @click="emit('cancel')"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="3" y="3" width="10" height="10" rx="1"/>
+            </svg>
+          </button>
           <!-- Send btn -->
           <button
+            v-else
             class="cc-send-btn"
-            :disabled="!value.trim() || disabled"
+            :disabled="!value.trim()"
             @click="submit"
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -95,7 +106,10 @@
 import { ref, computed } from 'vue'
 
 const props = defineProps<{ disabled?: boolean }>()
-const emit = defineEmits<{ send: [payload: { content: string; mode: string }] }>()
+const emit = defineEmits<{
+  send: [payload: { content: string; mode: string }]
+  cancel: []
+}>()
 
 const value = ref('')
 const focused = ref(false)
@@ -342,6 +356,14 @@ function newline() {
 .cc-send-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.cc-send-btn--stop {
+  background: var(--error);
+}
+
+.cc-send-btn--stop:hover {
+  background: #e05555;
 }
 
 .cc-send-kbd {

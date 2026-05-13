@@ -69,7 +69,7 @@
     </div>
 
     <!-- Input -->
-    <ChatInput :disabled="isLoading || !currentSessionId" @send="onSend" />
+    <ChatInput :disabled="isLoading || !currentSessionId" @send="onSend" @cancel="cancelDispatch" />
   </div>
 </template>
 
@@ -101,6 +101,7 @@ const {
   currentSession,
   streamingMessage,
   sendMessage,
+  cancelDispatch,
 } = useChat(scrollToBottom)
 
 onMounted(async () => {

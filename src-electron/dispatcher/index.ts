@@ -32,6 +32,7 @@ export class Dispatcher {
       bypassFlag: useRouteFlags ? routeResult.bypassFlag : undefined,
       sessionId: req.sessionId,
       onToken: req.onToken,
+      abortSignal: req.abortSignal,
     }
 
     try {

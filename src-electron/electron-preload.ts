@@ -4,6 +4,9 @@ const claudicaro = {
   dispatch: (task: string, sessionId: string, forceCli?: string): Promise<unknown> =>
     ipcRenderer.invoke('cc:dispatch', { task, sessionId, forceCli }),
 
+  cancel: (sessionId: string): Promise<void> =>
+    ipcRenderer.invoke('cc:dispatch:cancel', { sessionId }),
+
   onToken: (cb: (chunk: string, sessionId: string) => void): (() => void) => {
     const handler = (_: unknown, data: { chunk: string; sessionId: string }) =>
       cb(data.chunk, data.sessionId)
