@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,13 +7,14 @@ datasource db {
 }
 
 model Session {
-  id          String    @id @default(cuid())
-  title       String    @default("Nova conversa")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  messages    Message[]
-  memories    Memory[]
-  agentSnaps  AgentSnapshot[]
+  id                  String    @id @default(cuid())
+  title               String    @default("Nova conversa")
+  orchestratorConfig  String?   // JSON: { cli, model, agentFile, permissionMode }
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  messages            Message[]
+  memories            Memory[]
+  agentSnaps          AgentSnapshot[]
 }
 
 model Message {

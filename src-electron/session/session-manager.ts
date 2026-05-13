@@ -25,9 +25,12 @@ export interface MessageRecord extends MessagePayload {
 }
 
 export class SessionManager extends EventEmitter {
-  async createSession(title?: string): Promise<string> {
+  async createSession(title?: string, orchestratorConfig?: string): Promise<string> {
     const session = await prisma.session.create({
-      data: { title: title ?? 'Nova conversa' }
+      data: {
+        title: title ?? 'Nova conversa',
+        orchestratorConfig: orchestratorConfig ?? null,
+      }
     })
     return session.id
   }
