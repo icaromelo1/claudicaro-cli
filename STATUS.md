@@ -12,9 +12,9 @@
 ## Wave 3 ✅ concluída
 - [x] T5: MVP Dispatcher core — done (router.ts + index.ts, failover CONTEXT/TIMEOUT/OVERLOAD/RATE_LIMIT)
 
-## Wave 4
-- [ ] T7: Adapters mínimos
-- [ ] T8: Session Manager
+## Wave 4 ✅ concluída
+- [x] T7: Adapters mínimos — done (ClaudeAdapter, GeminiAdapter, CopilotAdapter)
+- [x] T8: Session Manager — done (SessionManager + MemoryWriteBuffer)
 
 ## Wave 5 ✅ CORE
 - [ ] T9: Integração Chat ↔ Dispatcher ↔ Adapters
