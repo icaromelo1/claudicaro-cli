@@ -95,11 +95,15 @@ export function useChat(scrollToBottom?: () => void) {
 
       if (session) session.messageCount++
     } catch (err) {
+      const e = err as any
+      const userMsg: string = e.userMessage ?? (err as Error).message
+      const raw: string | undefined = e.rawOutput
+      const content = raw ? `${userMsg}\n\n---\n*Saída completa:* \`\`\`\n${raw}\n\`\`\`` : userMsg
       messages.value.push({
         id: (Date.now() + 1).toString(),
         sessionId: currentSessionId.value,
         role: 'assistant',
-        content: `Erro ao processar: ${(err as Error).message}`,
+        content,
         cli: loadingCli.value,
         createdAt: new Date(),
       })
@@ -108,6 +112,12 @@ export function useChat(scrollToBottom?: () => void) {
       isLoading.value = false
       await nextTick()
       scrollToBottom?.()
+    }
+  }
+
+  function cancelDispatch() {
+    if (currentSessionId.value) {
+      void window.claudicaro.cancel(currentSessionId.value)
     }
   }
 
@@ -121,5 +131,6 @@ export function useChat(scrollToBottom?: () => void) {
     currentSession,
     streamingMessage,
     sendMessage,
+    cancelDispatch,
   }
 }

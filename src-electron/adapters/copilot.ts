@@ -12,6 +12,13 @@ import { AdapterError } from '../dispatcher/types.js'
 import { sanitizeInput } from '../sanitize/index.js'
 import { guardDispatch } from '../security/index.js'
 
+function parseStderr(raw: string): { userMessage: string; rawOutput: string } {
+  const noisePatterns = ['Warning:', 'If piping', 'redirect stdin', '< /dev/null']
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean)
+  const meaningful = lines.filter(l => !noisePatterns.some(p => l.startsWith(p)))
+  return { userMessage: meaningful[0] ?? raw.trim(), rawOutput: raw.trim() }
+}
+
 export class CopilotAdapter implements IAdapter {
   readonly name = 'copilot'
   readonly role = 'CONSELHEIRO' as const
@@ -29,6 +36,10 @@ export class CopilotAdapter implements IAdapter {
       const proc = spawn('gh', args, { shell: false })
       let stdout = ''
       let stderr = ''
+
+      if (params.abortSignal) {
+        params.abortSignal.addEventListener('abort', () => proc.kill('SIGTERM'), { once: true })
+      }
 
       proc.stdout.on('data', (chunk: Buffer) => {
         const text = chunk.toString()
@@ -62,19 +73,27 @@ export class CopilotAdapter implements IAdapter {
         }
       })
 
-      proc.on('close', (code) => {
+      proc.on('close', (code, signal) => {
         if (code === 0) {
           // CONSELHEIRO: capture output only, never execute suggested commands
           resolve(stdout)
           return
         }
 
+        if (code === null && signal) {
+          reject(new AdapterError('Cancelado pelo usuário.', 'UNKNOWN', 'copilot', false))
+          return
+        }
+
+        const parsed = parseStderr(stderr)
         reject(
           new AdapterError(
-            `gh copilot exited with code ${code}: ${stderr.trim()}`,
+            parsed.userMessage || `gh copilot exited with code ${code}`,
             'UNKNOWN',
             'copilot',
             false,
+            parsed.userMessage,
+            parsed.rawOutput,
           ),
         )
       })

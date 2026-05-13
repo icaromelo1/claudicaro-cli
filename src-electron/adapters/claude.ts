@@ -12,6 +12,13 @@ import { AdapterError } from '../dispatcher/types.js'
 import { sanitizeInput } from '../sanitize/index.js'
 import { guardDispatch } from '../security/index.js'
 
+function parseStderr(raw: string): { userMessage: string; rawOutput: string } {
+  const noisePatterns = ['Warning:', 'If piping', 'redirect stdin', '< /dev/null']
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean)
+  const meaningful = lines.filter(l => !noisePatterns.some(p => l.startsWith(p)))
+  return { userMessage: meaningful[0] ?? raw.trim(), rawOutput: raw.trim() }
+}
+
 export class ClaudeAdapter implements IAdapter {
   readonly name = 'claude'
   readonly role = 'EXECUTOR' as const
@@ -37,6 +44,10 @@ export class ClaudeAdapter implements IAdapter {
       const proc = spawn('claude', args, { shell: false })
       let stdout = ''
       let stderr = ''
+
+      if (params.abortSignal) {
+        params.abortSignal.addEventListener('abort', () => proc.kill('SIGTERM'), { once: true })
+      }
 
       proc.stdout.on('data', (chunk: Buffer) => {
         const text = chunk.toString()
@@ -70,9 +81,14 @@ export class ClaudeAdapter implements IAdapter {
         }
       })
 
-      proc.on('close', (code) => {
+      proc.on('close', (code, signal) => {
         if (code === 0) {
           resolve(stdout)
+          return
+        }
+
+        if (code === null && signal) {
+          reject(new AdapterError('Cancelado pelo usuário.', 'UNKNOWN', 'claude', false))
           return
         }
 
@@ -100,12 +116,15 @@ export class ClaudeAdapter implements IAdapter {
           return
         }
 
+        const parsed = parseStderr(stderr)
         reject(
           new AdapterError(
-            `Claude exited with code ${code}: ${stderr.trim()}`,
+            parsed.userMessage || `Claude exited with code ${code}`,
             'UNKNOWN',
             'claude',
             false,
+            parsed.userMessage,
+            parsed.rawOutput,
           ),
         )
       })

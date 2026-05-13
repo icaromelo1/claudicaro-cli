@@ -9,6 +9,7 @@ export interface AdapterInvokeParams {
   context?: string[]        // caminhos de arquivos .agent/*.md para injetar
   sessionId: string         // ID da sessão atual
   onToken?: (chunk: string) => void  // streaming callback
+  abortSignal?: AbortSignal
 }
 
 export interface AdapterInvokeResult {
@@ -53,6 +54,7 @@ export interface DispatchRequest {
   forceTaskType?: string
   forceCli?: string
   onToken?: (chunk: string) => void
+  abortSignal?: AbortSignal
 }
 
 export interface DispatchResult extends AdapterInvokeResult {
@@ -65,7 +67,9 @@ export class AdapterError extends Error {
     message: string,
     public code: AdapterErrorCode,
     public cli: string,
-    public retryable: boolean
+    public retryable: boolean,
+    public userMessage?: string,
+    public rawOutput?: string,
   ) {
     super(message)
     this.name = 'AdapterError'
