@@ -22,11 +22,14 @@ export class Dispatcher {
       throw new AdapterError(`Adapter '${cli}' not registered`, 'CLI_NOT_FOUND', cli, false)
     }
 
+    // Se forceCli sobreescreve o CLI roteado, não usar flags destinadas ao CLI original
+    const useRouteFlags = !req.forceCli || req.forceCli === routeResult.cli
+
     const params: AdapterInvokeParams = {
       task: req.task,
-      model: routeResult.model,
-      modelFlag: routeResult.modelFlag,
-      bypassFlag: routeResult.bypassFlag,
+      model: useRouteFlags ? routeResult.model : undefined,
+      modelFlag: useRouteFlags ? routeResult.modelFlag : undefined,
+      bypassFlag: useRouteFlags ? routeResult.bypassFlag : undefined,
       sessionId: req.sessionId,
       onToken: req.onToken,
     }

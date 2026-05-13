@@ -69,12 +69,13 @@ export function useChat(scrollToBottom?: () => void) {
 
     isLoading.value = true
     streamingContent.value = ''
+    const forceCli = mode && mode !== 'auto' ? mode : undefined
+    if (forceCli) loadingCli.value = forceCli
 
     await nextTick()
     scrollToBottom?.()
 
     try {
-      const forceCli = mode && mode !== 'auto' ? mode : undefined
       const result: DispatchResult = await window.claudicaro.dispatch(content, currentSessionId.value, forceCli)
 
       loadingCli.value = result.cli
@@ -99,7 +100,7 @@ export function useChat(scrollToBottom?: () => void) {
         sessionId: currentSessionId.value,
         role: 'assistant',
         content: `Erro ao processar: ${(err as Error).message}`,
-        cli: 'claude',
+        cli: loadingCli.value,
         createdAt: new Date(),
       })
     } finally {
