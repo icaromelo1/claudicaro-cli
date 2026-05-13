@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  title       String    @default("Nova conversa")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+  memories    Memory[]
+  agentSnaps  AgentSnapshot[]
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role        String   // "user" | "assistant"
+  content     String
+  cli         String?  // "claude" | "gemini" | "copilot" | null
+  model       String?  // modelo usado
+  routingMeta String?  // JSON: motivo do roteamento
+  tokens      Int?     // tokens usados
+  latencyMs   Int?     // latência em ms
+  createdAt   DateTime @default(now())
+}
+
+model Memory {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  key         String   // ex: "agents/especialista-deposito"
+  content     String   // conteúdo do .agent/*.md
+  rev         String?  // timestamp/hash de revisão
+  updatedAt   DateTime @updatedAt
+}
+
+model AgentSnapshot {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  agentFile   String   // caminho do arquivo .agent/*.md
+  content     String   // snapshot do conteúdo naquele momento
+  createdAt   DateTime @default(now())
+}
+
+model LockEntry {
+  id              String   @id @default(cuid())
+  phase           String
+  ownerCli        String
+  ownerUser       String
+  startTime       DateTime
+  estimatedEnd    DateTime
+  intent          String
+  filesInScope    String   // JSON array
+  sharedResources String   // JSON array
+  status          String   @default("in_progress") // "in_progress" | "done" | "blocked"
+  blockingReason  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // "force_unlock" | "lock_created" | "lock_released"
+  phase     String?
+  actor     String   // CLI ou usuário
+  reason    String?
+  metadata  String?  // JSON extra
+  createdAt DateTime @default(now())
+}
