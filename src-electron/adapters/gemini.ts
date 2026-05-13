@@ -9,12 +9,15 @@ import type {
   AdapterHealthResult,
 } from '../dispatcher/types.js'
 import { AdapterError } from '../dispatcher/types.js'
+import { sanitizeInput } from '../sanitize/index.js'
+import { guardDispatch } from '../security/index.js'
 
 export class GeminiAdapter implements IAdapter {
   readonly name = 'gemini'
   readonly role = 'EXECUTOR' as const
 
   async invoke(params: AdapterInvokeParams): Promise<AdapterInvokeResult> {
+    guardDispatch('gemini', params.task)
     const startMs = Date.now()
 
     const args: string[] = []
@@ -28,7 +31,7 @@ export class GeminiAdapter implements IAdapter {
       args.push(...params.bypassFlag.trim().split(/\s+/))
     }
 
-    args.push('-p', params.task)
+    args.push('-p', sanitizeInput(params.task))
 
     const content = await new Promise<string>((resolve, reject) => {
       const proc = spawn('gemini', args, { shell: false })

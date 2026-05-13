@@ -9,17 +9,21 @@ import type {
   AdapterHealthResult,
 } from '../dispatcher/types.js'
 import { AdapterError } from '../dispatcher/types.js'
+import { sanitizeInput } from '../sanitize/index.js'
+import { guardDispatch } from '../security/index.js'
 
 export class CopilotAdapter implements IAdapter {
   readonly name = 'copilot'
   readonly role = 'CONSELHEIRO' as const
 
   async invoke(params: AdapterInvokeParams): Promise<AdapterInvokeResult> {
+    guardDispatch('copilot', params.task)
     const startMs = Date.now()
 
+    const sanitizedTask = sanitizeInput(params.task)
     // Route to explain or suggest based on task content
-    const subcommand = params.task.toLowerCase().includes('explain') ? 'explain' : 'suggest'
-    const args = ['copilot', subcommand, params.task]
+    const subcommand = sanitizedTask.toLowerCase().includes('explain') ? 'explain' : 'suggest'
+    const args = ['copilot', subcommand, sanitizedTask]
 
     const content = await new Promise<string>((resolve, reject) => {
       const proc = spawn('gh', args, { shell: false })
