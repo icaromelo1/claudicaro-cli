@@ -12,16 +12,24 @@ const claudicaro = {
   },
 
   session: {
-    create: (title?: string): Promise<{ id: string; title: string }> =>
-      ipcRenderer.invoke('cc:session:create', { title }),
+    create: (title?: string, orchestratorConfig?: string): Promise<{ id: string; title: string; orchestratorConfig?: string }> =>
+      ipcRenderer.invoke('cc:session:create', { title, orchestratorConfig }),
     list: (): Promise<unknown[]> =>
       ipcRenderer.invoke('cc:session:list'),
     history: (sessionId: string): Promise<unknown[]> =>
       ipcRenderer.invoke('cc:session:history', { sessionId }),
   },
 
+  tokens: {
+    budget: (sessionId: string): Promise<unknown> =>
+      ipcRenderer.invoke('cc:tokens:budget', { sessionId }),
+  },
+
   health: (): Promise<Record<string, unknown>> =>
     ipcRenderer.invoke('cc:health'),
+
+  logs: (limit?: number): Promise<unknown[]> =>
+    ipcRenderer.invoke('cc:logs', { limit }),
 }
 
 contextBridge.exposeInMainWorld('claudicaro', claudicaro)

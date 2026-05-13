@@ -1,13 +1,17 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import os from 'os'
 import { fileURLToPath } from 'url'
 import { dispatcher } from './dispatcher/index.js'
 import { ClaudeAdapter, GeminiAdapter, CopilotAdapter } from './adapters/index.js'
-import { SessionManager } from './session/index.js'
+import { SessionManager, TokenTracker } from './session/index.js'
+import { logger } from './dispatcher/logger.js'
 
 const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
+
+// Suppress Chromium DevTools CDP noise (Autofill.enable / setAddresses not implemented)
+app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')
 
 // Register adapters at startup
 dispatcher.register(new ClaudeAdapter())
@@ -15,6 +19,7 @@ dispatcher.register(new GeminiAdapter())
 dispatcher.register(new CopilotAdapter())
 
 const sessionManager = new SessionManager()
+const tokenTracker = new TokenTracker()
 
 let mainWindow: BrowserWindow | undefined
 
@@ -38,12 +43,22 @@ function setupIpcHandlers(): void {
       latencyMs: result.latencyMs,
     })
 
+    if (result.tokens != null) {
+      await tokenTracker.track({
+        sessionId,
+        cli: result.cli,
+        tokens: result.tokens,
+        latencyMs: result.latencyMs,
+        timestamp: new Date(),
+      })
+    }
+
     return result
   })
 
-  ipcMain.handle('cc:session:create', async (_, { title }: { title?: string }) => {
-    const id = await sessionManager.createSession(title)
-    return { id, title: title ?? 'Nova conversa' }
+  ipcMain.handle('cc:session:create', async (_, { title, orchestratorConfig }: { title?: string; orchestratorConfig?: string }) => {
+    const id = await sessionManager.createSession(title, orchestratorConfig)
+    return { id, title: title ?? 'Nova conversa', orchestratorConfig }
   })
 
   ipcMain.handle('cc:session:list', async () => {
@@ -54,8 +69,16 @@ function setupIpcHandlers(): void {
     return sessionManager.getHistory(sessionId)
   })
 
+  ipcMain.handle('cc:tokens:budget', async (_, { sessionId }: { sessionId: string }) => {
+    return tokenTracker.getSessionBudget(sessionId)
+  })
+
   ipcMain.handle('cc:health', async () => {
     return dispatcher.checkHealth()
+  })
+
+  ipcMain.handle('cc:logs', async (_, { limit }: { limit?: number } = {}) => {
+    return logger.getLogs(limit)
   })
 }
 
@@ -87,12 +110,9 @@ async function createWindow() {
     await mainWindow.loadFile('index.html')
   }
 
-  if (process.env.DEBUGGING) {
+  // DevTools only on explicit --devtools flag to avoid CDP noise (Autofill errors)
+  if (process.env.DEVTOOLS === '1') {
     mainWindow.webContents.openDevTools()
-  } else {
-    mainWindow.webContents.on('devtools-opened', () => {
-      mainWindow?.webContents.closeDevTools()
-    })
   }
 
   mainWindow.on('closed', () => {

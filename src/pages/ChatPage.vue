@@ -25,6 +25,13 @@
       </q-scroll-area>
     </q-drawer>
 
+    <!-- Modal de configuração de nova conversa -->
+    <ConversationConfigModal
+      v-if="showConfigModal"
+      @confirm="onConfigConfirm"
+      @cancel="showConfigModal = false"
+    />
+
     <!-- Área principal -->
     <q-page-container>
       <q-page class="cc-chat-page">
@@ -75,7 +82,8 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import ChatMessage from 'components/ChatMessage.vue'
 import ChatInput from 'components/ChatInput.vue'
 import ChatLoading from 'components/ChatLoading.vue'
-import type { SessionSummary, MessageRecord, DispatchResult } from 'src/types/claudicaro'
+import ConversationConfigModal from 'components/ConversationConfigModal.vue'
+import type { SessionSummary, MessageRecord, DispatchResult, OrchestratorConfig } from 'src/types/claudicaro'
 
 const sidebarOpen = ref(true)
 const currentSessionId = ref<string | null>(null)
@@ -85,6 +93,8 @@ const loadingCli = ref<string>('claude')
 const streamingContent = ref('')
 const scrollArea = ref()
 const sessions = ref<SessionSummary[]>([])
+const showConfigModal = ref(false)
+const pendingConfig = ref<OrchestratorConfig | null>(null)
 
 const cliColors: Record<string, string> = {
   claude: 'var(--cli-claude)',
@@ -119,7 +129,7 @@ onMounted(async () => {
   })
   await loadSessions()
   if (sessions.value.length === 0) {
-    await newSession()
+    showConfigModal.value = true
   } else {
     currentSessionId.value = sessions.value[0]!.id
     await loadHistory(sessions.value[0]!.id)
@@ -139,8 +149,15 @@ async function loadHistory(sessionId: string) {
 }
 
 async function newSession() {
-  const { id, title } = await window.claudicaro.session.create()
-  sessions.value.unshift({ id, title, createdAt: new Date(), messageCount: 0 })
+  showConfigModal.value = true
+}
+
+async function onConfigConfirm(config: OrchestratorConfig) {
+  showConfigModal.value = false
+  pendingConfig.value = config
+  const orchestratorConfig = JSON.stringify(config)
+  const { id, title } = await window.claudicaro.session.create(undefined, orchestratorConfig)
+  sessions.value.unshift({ id, title, createdAt: new Date(), messageCount: 0, orchestratorConfig })
   currentSessionId.value = id
   messages.value = []
 }
