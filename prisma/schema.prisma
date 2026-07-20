@@ -20,6 +20,9 @@ model Session {
   memories            Memory[]
   agentSnaps          AgentSnapshot[]
   cliSessions         CliSession[]
+  canvasCards         CanvasCard[]
+  canvasLinks         CanvasLink[]
+  peerGroups          PeerGroup[]
   group               SessionGroup?  @relation(fields: [groupId], references: [id])
 }
 
@@ -32,16 +35,16 @@ model SessionGroup {
 }
 
 model CliSession {
-  id                   String   @id @default(cuid())
-  claudicaroSessionId  String
-  cli                  String
-  cliSessionId         String
-  msgIndex             Int      @default(0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  session              Session  @relation(fields: [claudicaroSessionId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  icarusSessionId  String
+  cli              String
+  cliSessionId     String
+  msgIndex         Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  session          Session  @relation(fields: [icarusSessionId], references: [id], onDelete: Cascade)
 
-  @@unique([claudicaroSessionId, cli])
+  @@unique([icarusSessionId, cli])
 }
 
 model Message {
@@ -91,6 +94,59 @@ model LockEntry {
   blockingReason  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model CanvasCard {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  cli       String
+  engine    String   @default("pty") // "pty" | "headless-task" | "headless-peer"
+  x         Float
+  y         Float
+  width     Float    @default(480)
+  height    Float    @default(360)
+  ptyAlive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PeerGroup {
+  id           String   @id @default(cuid())
+  sessionId    String
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  turnOrder    String   @default("roundtable") // "round-robin" | "roundtable"
+  maxRounds    Int      @default(5)
+  currentRound Int      @default(0)
+  status       String   @default("running") // "running" | "stopped" | "done"
+  createdAt    DateTime @default(now())
+  members      PeerGroupMember[]
+}
+
+model PeerGroupMember {
+  id        String    @id @default(cuid())
+  groupId   String
+  group     PeerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  cardId    String
+  turnIndex Int
+}
+
+model PeerTurn {
+  id        String   @id @default(cuid())
+  groupId   String
+  cardId    String
+  round     Int
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model CanvasLink {
+  id             String   @id @default(cuid())
+  sessionId      String
+  session        Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  fromCardId     String
+  toCardId       String
+  contextSummary String
+  createdAt      DateTime @default(now())
 }
 
 model AuditLog {
