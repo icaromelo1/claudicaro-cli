@@ -8,7 +8,7 @@ export interface CliSettings {
 export interface AppSettings {
   clis: {
     claude: CliSettings
-    gemini: CliSettings
+    agy: CliSettings
     copilot: CliSettings
   }
   tokenBudget: number
@@ -34,7 +34,7 @@ export interface AuthState {
 }
 
 export interface OrchestratorConfig {
-  cli: 'claude' | 'gemini' | 'copilot'
+  cli: 'claude' | 'agy' | 'copilot'
   model: string
   agentFile: string | null  // ex: "dsg/.agent/tech-lead.md" ou null
   permissionMode: 'bypass' | 'normal' | 'ask'
@@ -110,9 +110,61 @@ export interface UpdateStatus {
   hasUpdate: boolean
 }
 
+export type CardEngine = 'pty' | 'headless-task' | 'headless-peer'
+export type PeerTurnOrder = 'round-robin' | 'roundtable'
+export type PeerGroupStatus = 'running' | 'stopped' | 'done'
+
+export interface CanvasCard {
+  id: string
+  sessionId: string
+  cli: string
+  engine: CardEngine
+  x: number
+  y: number
+  width: number
+  height: number
+  ptyAlive: boolean
+  createdAt: Date
+}
+
+export interface CanvasLink {
+  id: string
+  sessionId: string
+  fromCardId: string
+  toCardId: string
+  contextSummary: string
+  createdAt: Date
+}
+
+export interface PeerGroup {
+  id: string
+  sessionId: string
+  turnOrder: PeerTurnOrder
+  maxRounds: number
+  currentRound: number
+  status: PeerGroupStatus
+  createdAt: Date
+}
+
+export interface PeerGroupMember {
+  id: string
+  groupId: string
+  cardId: string
+  turnIndex: number
+}
+
+export interface PeerTurn {
+  id: string
+  groupId: string
+  cardId: string
+  round: number
+  content: string
+  createdAt: Date
+}
+
 declare global {
   interface Window {
-    claudicaro: {
+    icarus: {
       dispatch: (task: string, sessionId: string, forceCli?: string) => Promise<DispatchResult>
       cancel: (sessionId: string) => Promise<void>
       onToken: (cb: (chunk: string, sessionId: string) => void) => () => void
@@ -149,6 +201,36 @@ declare global {
         backup: (destDir?: string) => Promise<string>
         listBackups: () => Promise<string[]>
         checkUpdate: () => Promise<UpdateStatus>
+      }
+      canvas: {
+        listCards: (sessionId: string) => Promise<CanvasCard[]>
+        listLinks: (sessionId: string) => Promise<CanvasLink[]>
+        createCard: (sessionId: string, cli: string, x: number, y: number) => Promise<CanvasCard>
+        createLinkedCard: (sessionId: string, parentCardId: string, childCli: string, x: number, y: number) => Promise<{ card: CanvasCard; link: CanvasLink }>
+        moveCard: (cardId: string, x: number, y: number) => Promise<null>
+        deleteCard: (cardId: string) => Promise<null>
+        createTask: (sessionId: string, cli: string, x: number, y: number, task: string) => Promise<CanvasCard>
+        onTaskToken: (cb: (cardId: string, chunk: string) => void) => () => void
+        onTaskDone: (cb: (cardId: string, content: string) => void) => () => void
+        createPeerGroup: (
+          sessionId: string,
+          members: { cli: string; label: string }[],
+          turnOrder: PeerTurnOrder,
+          maxRounds: number,
+          openingPrompt: string,
+          positions: { x: number; y: number }[],
+        ) => Promise<{ group: PeerGroup; cards: CanvasCard[] }>
+        stopPeerGroup: (groupId: string) => Promise<null>
+        setPeerTurnOrder: (groupId: string, turnOrder: PeerTurnOrder) => Promise<null>
+        listPeerGroups: (sessionId: string) => Promise<{ group: PeerGroup; members: PeerGroupMember[] }[]>
+        listPeerTurns: (cardId: string) => Promise<PeerTurn[]>
+        onPeerTurn: (cb: (cardId: string, round: number, content: string) => void) => () => void
+      }
+      pty: {
+        write: (cardId: string, data: string) => Promise<null>
+        resize: (cardId: string, cols: number, rows: number) => Promise<null>
+        kill: (cardId: string) => Promise<null>
+        onData: (cb: (cardId: string, chunk: string) => void) => () => void
       }
     }
   }

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-const claudicaro = {
+const icarus = {
   dispatch: (task: string, sessionId: string, forceCli?: string): Promise<unknown> =>
     ipcRenderer.invoke('cc:dispatch', { task, sessionId, forceCli }),
 
@@ -69,8 +69,68 @@ const claudicaro = {
     listBackups: () => ipcRenderer.invoke('cc:maintenance:backups'),
     checkUpdate: () => ipcRenderer.invoke('cc:maintenance:update-check'),
   },
+
+  canvas: {
+    listCards: (sessionId: string): Promise<unknown[]> => ipcRenderer.invoke('canvas:card:list', { sessionId }),
+    listLinks: (sessionId: string): Promise<unknown[]> => ipcRenderer.invoke('canvas:link:list', { sessionId }),
+    createCard: (sessionId: string, cli: string, x: number, y: number): Promise<unknown> =>
+      ipcRenderer.invoke('canvas:card:create', { sessionId, cli, x, y }),
+    createLinkedCard: (sessionId: string, parentCardId: string, childCli: string, x: number, y: number): Promise<unknown> =>
+      ipcRenderer.invoke('canvas:card:create-linked', { sessionId, parentCardId, childCli, x, y }),
+    moveCard: (cardId: string, x: number, y: number): Promise<null> =>
+      ipcRenderer.invoke('canvas:card:move', { cardId, x, y }),
+    deleteCard: (cardId: string): Promise<null> =>
+      ipcRenderer.invoke('canvas:card:delete', { cardId }),
+    createTask: (sessionId: string, cli: string, x: number, y: number, task: string): Promise<unknown> =>
+      ipcRenderer.invoke('canvas:card:create-task', { sessionId, cli, x, y, task }),
+    onTaskToken: (cb: (cardId: string, chunk: string) => void): (() => void) => {
+      const handler = (_: unknown, data: { cardId: string; chunk: string }) => cb(data.cardId, data.chunk)
+      ipcRenderer.on('task:token', handler)
+      return () => ipcRenderer.off('task:token', handler)
+    },
+    onTaskDone: (cb: (cardId: string, content: string) => void): (() => void) => {
+      const handler = (_: unknown, data: { cardId: string; content: string }) => cb(data.cardId, data.content)
+      ipcRenderer.on('task:done', handler)
+      return () => ipcRenderer.off('task:done', handler)
+    },
+    createPeerGroup: (
+      sessionId: string,
+      members: { cli: string; label: string }[],
+      turnOrder: 'round-robin' | 'roundtable',
+      maxRounds: number,
+      openingPrompt: string,
+      positions: { x: number; y: number }[],
+    ): Promise<unknown> =>
+      ipcRenderer.invoke('canvas:peer:create', { sessionId, members, turnOrder, maxRounds, openingPrompt, positions }),
+    stopPeerGroup: (groupId: string): Promise<null> => ipcRenderer.invoke('canvas:peer:stop', { groupId }),
+    setPeerTurnOrder: (groupId: string, turnOrder: 'round-robin' | 'roundtable'): Promise<null> =>
+      ipcRenderer.invoke('canvas:peer:set-turn-order', { groupId, turnOrder }),
+    listPeerGroups: (sessionId: string): Promise<unknown[]> => ipcRenderer.invoke('canvas:peer:list', { sessionId }),
+    listPeerTurns: (cardId: string): Promise<unknown[]> => ipcRenderer.invoke('canvas:peer:turns', { cardId }),
+    onPeerTurn: (cb: (cardId: string, round: number, content: string) => void): (() => void) => {
+      const handler = (_: unknown, data: { cardId: string; round: number; content: string }) =>
+        cb(data.cardId, data.round, data.content)
+      ipcRenderer.on('peer:turn', handler)
+      return () => ipcRenderer.off('peer:turn', handler)
+    },
+  },
+
+  pty: {
+    write: (cardId: string, data: string): Promise<null> =>
+      ipcRenderer.invoke('pty:write', { cardId, data }),
+    resize: (cardId: string, cols: number, rows: number): Promise<null> =>
+      ipcRenderer.invoke('pty:resize', { cardId, cols, rows }),
+    kill: (cardId: string): Promise<null> =>
+      ipcRenderer.invoke('pty:kill', { cardId }),
+    onData: (cb: (cardId: string, chunk: string) => void): (() => void) => {
+      const handler = (_: unknown, data: { cardId: string; chunk: string }) =>
+        cb(data.cardId, data.chunk)
+      ipcRenderer.on('pty:data', handler)
+      return () => ipcRenderer.off('pty:data', handler)
+    },
+  },
 }
 
-contextBridge.exposeInMainWorld('claudicaro', claudicaro)
+contextBridge.exposeInMainWorld('icarus', icarus)
 
-export type ClaudicaroBridge = typeof claudicaro
+export type IcarusBridge = typeof icarus
