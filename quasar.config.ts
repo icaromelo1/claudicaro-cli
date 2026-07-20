@@ -57,9 +57,6 @@ export default configure(function (/* ctx */) {
       // polyfillModulePreload: true,
       // distDir
 
-      extendViteConf(viteConf) {
-        // extend Vite config
-      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -130,8 +127,8 @@ export default configure(function (/* ctx */) {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'com.claudicaro.cli',
-        productName: 'Claudicaro CLI',
+        appId: 'com.icarus.code',
+        productName: 'Icarus Code',
         copyright: 'Copyright © 2026 Icaro Melo',
 
         mac: {

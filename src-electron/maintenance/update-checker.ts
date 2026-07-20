@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 const projectRoot = path.resolve(currentDir, '../../..')
 
-const GITHUB_REPO = 'icaromelo/claudicaro-cli'
+const GITHUB_REPO = 'icaroMelo1/icarus-code'
 const CHANGELOG_URL = `https://github.com/${GITHUB_REPO}/blob/main/CHANGELOG.md`
 
 interface GitHubRelease {
@@ -48,7 +48,7 @@ function fetchLatestRelease(): Promise<GitHubRelease> {
       path: `/repos/${GITHUB_REPO}/releases/latest`,
       method: 'GET',
       headers: {
-        'User-Agent': 'claudicaro-cli',
+        'User-Agent': 'icarus-code',
         Accept: 'application/vnd.github+json',
       },
     }
