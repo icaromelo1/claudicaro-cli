@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import path from 'path'
 
-const dbPath = path.join(process.cwd(), 'prisma', 'claudicaro.db')
+const dbPath = path.join(process.cwd(), 'prisma', 'icarus.db')
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` })
 
 export const prisma = new PrismaClient({ adapter })

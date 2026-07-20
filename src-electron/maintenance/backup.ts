@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 const projectRoot = path.resolve(currentDir, '../../..')
 
-const DEFAULT_DB_PATH = path.join(projectRoot, 'prisma', 'claudicaro.db')
+const DEFAULT_DB_PATH = path.join(projectRoot, 'prisma', 'icarus.db')
 const DEFAULT_BACKUP_DIR = path.join(projectRoot, 'backups')
 const MAX_BACKUPS = 5
 
@@ -26,7 +26,7 @@ export class BackupManager {
 
     await fs.mkdir(backupDir, { recursive: true })
 
-    const filename = `claudicaro-${getTimestamp()}.db`
+    const filename = `icarus-${getTimestamp()}.db`
     const destPath = path.join(backupDir, filename)
 
     await fs.copyFile(DEFAULT_DB_PATH, destPath)

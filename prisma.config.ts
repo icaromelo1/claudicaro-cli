@@ -7,6 +7,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: `file:${path.join(process.cwd(), "prisma", "claudicaro.db")}`,
+    url: `file:${path.join(process.cwd(), "prisma", "icarus.db")}`,
   },
 });

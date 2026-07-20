@@ -5,7 +5,7 @@ node_modules/
 dist/
 dist-electron/
 .quasar/
-prisma/claudicaro.db
-prisma/claudicaro.db-journal
+prisma/icarus.db
+prisma/icarus.db-journal
 *.log
 .DS_Store
