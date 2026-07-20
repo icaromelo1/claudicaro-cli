@@ -13,7 +13,7 @@
             <path d="M5 7l2 2-2 2"/>
             <path d="M9 11h2"/>
           </svg>
-          ~/claudicaro
+          ~/icarus-code
         </button>
         <div class="cc-header-divider" />
         <button class="cc-header-chip cc-header-chip--active" @click="showWorkflow = true">

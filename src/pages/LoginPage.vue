@@ -3,7 +3,7 @@
     <div class="auth-card">
       <!-- Logo e subtítulo -->
       <div class="auth-header">
-        <span class="auth-logo">Claudicaro</span>
+        <span class="auth-logo">Icarus</span>
         <span class="auth-subtitle">Seu hub de IAs, em um só lugar</span>
       </div>
 

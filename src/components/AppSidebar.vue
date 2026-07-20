@@ -21,7 +21,7 @@
           <path d="M4 4l4 8 4-8M5 4h6" stroke="#0B0B0E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span v-show="expanded !== false" class="cc-brand-name">Claudicaro</span>
+      <span v-show="expanded !== false" class="cc-brand-name">Icarus</span>
       <span v-show="expanded !== false" class="cc-brand-beta">BETA</span>
     </div>
 
