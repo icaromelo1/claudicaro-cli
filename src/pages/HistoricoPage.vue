@@ -99,7 +99,7 @@ const cliStatuses = ref<{ name: string; color: string; available: boolean }[]>([
 
 const CLI_COLORS: Record<string, string> = {
   Claude: '#D97757',
-  Gemini: '#5187F2',
+  Agy: '#5187F2',
   Copilot: '#B5C0CC',
 }
 
@@ -111,7 +111,7 @@ onMounted(async () => {
     ])
     allSessions.value = sessions
 
-    cliStatuses.value = ['Claude', 'Gemini', 'Copilot'].map((name) => {
+    cliStatuses.value = ['Claude', 'Agy', 'Copilot'].map((name) => {
       const key = name.toLowerCase()
       const info = health[key] as { available: boolean } | undefined
       return { name, color: CLI_COLORS[name]!, available: info?.available ?? false }

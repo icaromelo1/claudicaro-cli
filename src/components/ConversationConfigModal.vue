@@ -194,7 +194,7 @@ const steps = [
 
 const cliOptions = [
   { id: 'claude' as const, name: 'Claude', desc: 'Code + MCP' },
-  { id: 'gemini' as const, name: 'Gemini', desc: 'Search + Vision' },
+  { id: 'agy' as const, name: 'Agy', desc: 'Search + Vision' },
   { id: 'copilot' as const, name: 'Copilot', desc: 'GitHub Native' },
 ]
 
@@ -204,11 +204,11 @@ const modelsByCliMap: Record<string, { value: string; label: string; desc?: stri
     { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6', desc: 'Equilíbrio ideal (padrão)' },
     { value: 'claude-opus-4-7', label: 'Claude Opus 4.7', desc: 'Máxima capacidade' },
   ],
-  gemini: [
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', desc: 'Rápido e econômico' },
-    { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', desc: 'Alta capacidade' },
-    { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro Preview', desc: 'Próxima geração' },
-    { value: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite', desc: 'Ultrarrápido' },
+  agy: [
+    { value: 'Gemini 3.5 Flash (Medium)', label: 'Gemini 3.5 Flash (Medium)', desc: 'Rápido e econômico' },
+    { value: 'Gemini 3.1 Pro (High)', label: 'Gemini 3.1 Pro (High)', desc: 'Alta capacidade' },
+    { value: 'GPT-OSS 120B (Medium)', label: 'GPT-OSS 120B (Medium)', desc: 'Próxima geração' },
+    { value: 'Claude Sonnet 4.6 (Thinking)', label: 'Claude Sonnet 4.6 (Thinking)', desc: 'Raciocínio profundo' },
   ],
   copilot: [
     { value: 'suggest', label: 'Suggest', desc: 'Sugestões de código inline' },
@@ -280,7 +280,7 @@ watch(() => config.value.cli, (newCli) => {
   }
 })
 
-function selectCli(cli: 'claude' | 'gemini' | 'copilot') {
+function selectCli(cli: 'claude' | 'agy' | 'copilot') {
   config.value.cli = cli
   const opts = modelsByCliMap[cli]
   if (opts && opts.length > 0) {

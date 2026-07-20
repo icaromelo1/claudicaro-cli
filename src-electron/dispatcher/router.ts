@@ -38,35 +38,79 @@ export interface RouteResult {
 }
 
 const TASK_KEYWORDS: Array<[string, string]> = [
+  // web_search
   ['web search', 'web_search'],
+  ['busca web', 'web_search'],
+  ['pesquisa web', 'web_search'],
+  ['pesquisar', 'web_search'],
+  ['pesquisa', 'web_search'],
+  ['buscar', 'web_search'],
   ['search', 'web_search'],
   ['google', 'web_search'],
-  ['docs', 'docs_update'],
+  // docs_update
+  ['documentação', 'docs_update'],
   ['documentation', 'docs_update'],
+  ['changelog', 'docs_update'],
+  ['docs', 'docs_update'],
+  // log_analysis / cross_repo_audit
+  ['análise de log', 'log_analysis'],
+  ['analisar log', 'log_analysis'],
   ['log analysis', 'log_analysis'],
+  ['auditoria', 'cross_repo_audit'],
   ['audit', 'cross_repo_audit'],
+  // screenshot / image_analysis
+  ['captura de tela', 'screenshot'],
   ['screenshot', 'screenshot'],
-  ['image', 'image_analysis'],
   ['imagem', 'image_analysis'],
+  ['image', 'image_analysis'],
+  // lint_fix / commit_message / summarization
   ['lint', 'lint_fix'],
+  ['mensagem de commit', 'commit_message'],
   ['commit message', 'commit_message'],
-  ['summarize', 'summarization'],
+  ['resumir', 'summarization'],
   ['resumo', 'summarization'],
+  ['summarize', 'summarization'],
+  // code_review / debug
+  ['revisão de código', 'code_review'],
+  ['revisar código', 'code_review'],
   ['code review', 'code_review'],
   ['review', 'code_review'],
+  ['revisar', 'code_review'],
+  ['depurar', 'debug'],
+  ['corrigir bug', 'debug'],
   ['debug', 'debug'],
   ['bug', 'debug'],
+  // architecture / adr / system_design / strategic_planning
+  ['arquitetura', 'architecture'],
   ['architecture', 'architecture'],
   ['adr', 'adr'],
+  ['design de sistema', 'system_design'],
   ['system design', 'system_design'],
+  ['plano estratégico', 'strategic_planning'],
+  ['planejamento estratégico', 'strategic_planning'],
   ['strategic plan', 'strategic_planning'],
+  // create_pr / create_branch / shell_suggestion
   ['pull request', 'create_pr'],
+  ['criar pr', 'create_pr'],
+  ['cria uma pr', 'create_pr'],
+  ['cria pr', 'create_pr'],
+  ['abrir pr', 'create_pr'],
+  ['abre uma pr', 'create_pr'],
+  ['abre pr', 'create_pr'],
   ['create pr', 'create_pr'],
+  ['nova branch', 'create_branch'],
+  ['criar branch', 'create_branch'],
   ['new branch', 'create_branch'],
+  ['comando shell', 'shell_suggestion'],
+  ['sugestão de comando', 'shell_suggestion'],
   ['shell', 'shell_suggestion'],
+  // complex_feature / multi_file_edit
+  ['refatorar', 'multi_file_edit'],
+  ['refactor', 'multi_file_edit'],
+  ['nova funcionalidade', 'complex_feature'],
+  ['implementar', 'complex_feature'],
   ['feature', 'complex_feature'],
   ['implement', 'complex_feature'],
-  ['refactor', 'multi_file_edit'],
 ]
 
 export function classifyTask(task: string): string {

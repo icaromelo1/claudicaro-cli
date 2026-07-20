@@ -2,7 +2,7 @@
   <Teleport to="body">
     <Transition name="drawer">
       <div v-if="modelValue" class="cc-drawer-overlay" @click.self="emit('update:modelValue', false)">
-        <div class="cc-drawer" @click.stop>
+        <div class="cc-drawer" :class="{ 'cc-drawer--canvas': viewMode === 'canvas' }" @click.stop>
           <div class="cc-drawer-header">
             <div class="cc-drawer-title-wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -14,14 +14,27 @@
               <span class="cc-drawer-title">Workflow</span>
               <span v-if="sessionTitle" class="cc-drawer-subtitle">{{ sessionTitle }}</span>
             </div>
+            <div class="cc-drawer-view-toggle">
+              <button
+                class="cc-drawer-view-btn"
+                :class="{ active: viewMode === 'bpmn' }"
+                @click="viewMode = 'bpmn'"
+              >BPMN</button>
+              <button
+                class="cc-drawer-view-btn"
+                :class="{ active: viewMode === 'canvas' }"
+                @click="viewMode = 'canvas'"
+              >Canvas</button>
+            </div>
             <button class="cc-drawer-close" @click="emit('update:modelValue', false)" title="Fechar">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M4 4l8 8M12 4l-8 8"/>
               </svg>
             </button>
           </div>
-          <div class="cc-drawer-body">
-            <WorkflowViewer v-if="sessionId" :session-id="sessionId" :compact="false" />
+          <div class="cc-drawer-body" :class="{ 'cc-drawer-body--canvas': viewMode === 'canvas' }">
+            <WorkflowCanvas v-if="viewMode === 'canvas'" :session-id="sessionId ?? null" />
+            <WorkflowViewer v-else-if="sessionId" :session-id="sessionId" :compact="false" />
             <div v-else class="cc-drawer-empty">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="9" width="6" height="6" rx="1"/>
@@ -39,8 +52,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import WorkflowViewer from './WorkflowViewer.vue'
+import WorkflowCanvas from './canvas/WorkflowCanvas.vue'
 import { useSessions } from 'src/composables/useSessions'
 
 const props = defineProps<{
@@ -50,6 +64,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
+const viewMode = ref<'bpmn' | 'canvas'>('bpmn')
 const { sessions } = useSessions()
 
 const sessionTitle = computed(() => {
@@ -85,6 +100,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKey))
   display: flex;
   flex-direction: column;
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
+  transition: width 0.2s ease;
+}
+
+.cc-drawer--canvas {
+  width: min(900px, 80vw);
 }
 
 .cc-drawer-header {
@@ -120,6 +140,31 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKey))
   max-width: 200px;
 }
 
+.cc-drawer-view-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+}
+
+.cc-drawer-view-btn {
+  padding: 3px 10px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.cc-drawer-view-btn.active {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
 .cc-drawer-close {
   width: 28px;
   height: 28px;
@@ -142,6 +187,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKey))
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+}
+
+.cc-drawer-body--canvas {
+  overflow: hidden;
+  padding: 0;
 }
 
 .cc-drawer-empty {

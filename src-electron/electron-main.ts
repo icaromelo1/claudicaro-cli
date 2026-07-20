@@ -3,12 +3,15 @@ import path from 'path'
 import os from 'os'
 import { fileURLToPath } from 'url'
 import { dispatcher } from './dispatcher/index.js'
-import { ClaudeAdapter, GeminiAdapter, CopilotAdapter } from './adapters/index.js'
+import { ClaudeAdapter, AgyAdapter, CopilotAdapter } from './adapters/index.js'
 import { SessionManager, TokenTracker } from './session/index.js'
 import { logger } from './dispatcher/logger.js'
 import { googleAuth } from './auth/index.js'
 import { settingsStore } from './config/index.js'
 import { setupIpcHandlers } from './ipc/index.js'
+import { setupPtyHandlers } from './ipc/pty-handlers.js'
+import { PtyManager } from './pty/pty-manager.js'
+import { CanvasManager } from './canvas/canvas-manager.js'
 
 const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
@@ -18,11 +21,13 @@ app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')
 
 // Register adapters at startup
 dispatcher.register(new ClaudeAdapter())
-dispatcher.register(new GeminiAdapter())
+dispatcher.register(new AgyAdapter())
 dispatcher.register(new CopilotAdapter())
 
 const sessionManager = new SessionManager()
 const tokenTracker = new TokenTracker()
+const ptyManager = new PtyManager()
+const canvasManager = new CanvasManager()
 
 let mainWindow: BrowserWindow | undefined
 
@@ -66,6 +71,7 @@ async function createWindow() {
 
 void app.whenReady().then(() => {
   setupIpcHandlers(sessionManager, tokenTracker, dispatcher, logger, googleAuth, settingsStore)
+  setupPtyHandlers(ptyManager, canvasManager, settingsStore, dispatcher)
   void createWindow()
 })
 

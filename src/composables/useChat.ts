@@ -9,7 +9,7 @@ export function useChat(scrollToBottom?: () => void) {
   const isLoading = ref(false)
   const loadingCli = ref<string>('claude')
   const streamingContent = ref('')
-  const activeClis = ref(['claude', 'gemini', 'copilot'])
+  const activeClis = ref(['claude', 'agy', 'copilot'])
 
   const currentSession = computed(() =>
     sessions.value.find(s => s.id === currentSessionId.value)
@@ -95,8 +95,8 @@ export function useChat(scrollToBottom?: () => void) {
 
       if (session) session.messageCount++
     } catch (err) {
-      const e = err as any
-      const userMsg: string = e.userMessage ?? (err as Error).message
+      const e = err as Error & { userMessage?: string; rawOutput?: string }
+      const userMsg: string = e.userMessage ?? e.message
       const raw: string | undefined = e.rawOutput
       const content = raw ? `${userMsg}\n\n---\n*Saída completa:* \`\`\`\n${raw}\n\`\`\`` : userMsg
       messages.value.push({

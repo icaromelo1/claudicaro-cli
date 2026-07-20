@@ -18,10 +18,10 @@ import { computed } from 'vue'
 const props = defineProps<{ cli?: string }>()
 
 const cliColors: Record<string, string> = {
-  claude: '#D97757', gemini: '#5187F2', copilot: '#B5C0CC',
+  claude: '#D97757', agy: '#5187F2', copilot: '#B5C0CC',
 }
 const cliLabels: Record<string, string> = {
-  claude: 'C', gemini: 'G', copilot: 'P',
+  claude: 'C', agy: 'G', copilot: 'P',
 }
 
 const cliColor = computed(() => cliColors[props.cli ?? 'claude'] ?? '#888')

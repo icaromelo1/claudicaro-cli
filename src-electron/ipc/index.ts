@@ -6,6 +6,7 @@ import type { TokenTracker } from '../session/token-tracker.js'
 import type { DispatcherLogger } from '../dispatcher/logger.js'
 import type { GoogleAuth } from '../auth/google.js'
 import type { SettingsStore, AppSettings } from '../config/settings-store.js'
+import { route } from '../dispatcher/router.js'
 
 export function setupIpcHandlers(
   sessionManager: SessionManager,
@@ -20,7 +21,7 @@ export function setupIpcHandlers(
   ipcMain.handle('cc:dispatch', async (event, { task, sessionId, forceCli }: { task: string; sessionId: string; forceCli?: string }) => {
     await sessionManager.persistMessage(sessionId, { role: 'user', content: task })
 
-    const cli = forceCli ?? 'claude'
+    const cli = forceCli ?? route(task).cli
     const cliSessionId = await sessionManager.getCliSession(sessionId, cli) ?? undefined
 
     const recentMessages = await sessionManager.getLastNMessages(sessionId, 10)

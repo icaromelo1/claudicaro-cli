@@ -115,14 +115,14 @@ const value = ref('')
 const focused = ref(false)
 const textarea = ref<HTMLTextAreaElement>()
 
-type Mode = 'auto' | 'claude' | 'gemini' | 'copilot'
+type Mode = 'auto' | 'claude' | 'agy' | 'copilot'
 const mode = ref<Mode>('auto')
-const MODES: Mode[] = ['auto', 'claude', 'gemini', 'copilot']
+const MODES: Mode[] = ['auto', 'claude', 'agy', 'copilot']
 
 const MODE_META: Record<Mode, { label: string; color: string }> = {
   auto: { label: 'Auto', color: 'var(--accent)' },
   claude: { label: 'Claude', color: '#D97757' },
-  gemini: { label: 'Gemini', color: '#5187F2' },
+  agy: { label: 'Agy', color: '#5187F2' },
   copilot: { label: 'Copilot', color: '#B5C0CC' },
 }
 

@@ -115,7 +115,7 @@ interface HealthRecord {
 
 const CLI_LIST = [
   { key: 'claude', label: 'Claude' },
-  { key: 'gemini', label: 'Gemini' },
+  { key: 'agy', label: 'Agy' },
   { key: 'copilot', label: 'Copilot' },
 ]
 

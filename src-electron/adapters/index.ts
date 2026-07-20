@@ -1,3 +1,3 @@
 export { ClaudeAdapter } from './claude.js'
-export { GeminiAdapter } from './gemini.js'
+export { AgyAdapter } from './agy.js'
 export { CopilotAdapter } from './copilot.js'

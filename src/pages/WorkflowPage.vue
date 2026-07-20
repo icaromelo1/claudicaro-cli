@@ -18,7 +18,8 @@
     </header>
 
     <!-- Corpo -->
-    <div class="cc-workflow-body">
+    <WorkflowCanvas v-if="activeTab === 'canvas'" class="cc-workflow-canvas" />
+    <div v-else class="cc-workflow-body">
       <div v-if="displayedSessions.length === 0" class="cc-workflow-empty">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3">
           <rect x="3" y="9" width="6" height="6" rx="1"/>
@@ -59,13 +60,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import WorkflowViewer from 'src/components/WorkflowViewer.vue'
+import WorkflowCanvas from 'src/components/canvas/WorkflowCanvas.vue'
 import { useSessions } from 'src/composables/useSessions'
 import type { SessionSummary } from 'src/types/claudicaro'
 
 const router = useRouter()
 const { sessions, currentSessionId, loadSessions, selectSession } = useSessions()
 
-const activeTab = ref<'all' | 'active' | 'pinned'>('all')
+const activeTab = ref<'all' | 'active' | 'pinned' | 'canvas'>('all')
 
 onMounted(async () => {
   await loadSessions()
@@ -78,6 +80,7 @@ const tabs = computed(() => [
   { id: 'all' as const, label: 'Todos', count: sessions.value.length },
   { id: 'active' as const, label: 'Ativos', count: activeSessions.value.length },
   { id: 'pinned' as const, label: 'Fixados', count: pinnedSessions.value.length },
+  { id: 'canvas' as const, label: 'Canvas', count: 0 },
 ])
 
 const displayedSessions = computed<SessionSummary[]>(() => {
@@ -166,6 +169,11 @@ async function openChat(id: string) {
   border-radius: 4px;
   background: var(--bg-elevated);
   color: var(--text-muted);
+}
+
+.cc-workflow-canvas {
+  flex: 1;
+  min-height: 0;
 }
 
 .cc-workflow-body {

@@ -249,7 +249,7 @@ import type { AppSettings } from 'src/types/claudicaro'
 const DEFAULT_SETTINGS: AppSettings = {
   clis: {
     claude: { enabled: true, binaryPath: 'claude', defaultModel: 'claude-sonnet-4-6', defaultBypass: true },
-    gemini: { enabled: true, binaryPath: 'gemini', defaultModel: 'gemini-2.5-flash', defaultBypass: true },
+    agy: { enabled: true, binaryPath: 'agy', defaultModel: 'Gemini 3.5 Flash (Medium)', defaultBypass: true },
     copilot: { enabled: true, binaryPath: 'gh', defaultModel: '', defaultBypass: false },
   },
   tokenBudget: 100000,
@@ -276,17 +276,17 @@ const savedFeedback = ref(false)
 const saveError = ref(false)
 
 // ─── Constants ───────────────────────────────────────────────────────────
-const cliKeys = ['claude', 'gemini', 'copilot'] as const
+const cliKeys = ['claude', 'agy', 'copilot'] as const
 
 const cliLabels: Record<string, string> = {
   claude: 'Claude',
-  gemini: 'Gemini',
+  agy: 'Agy',
   copilot: 'Copilot',
 }
 
 const cliOptions = [
   { id: 'claude' as const, name: 'Claude' },
-  { id: 'gemini' as const, name: 'Gemini' },
+  { id: 'agy' as const, name: 'Agy' },
   { id: 'copilot' as const, name: 'Copilot' },
 ]
 
@@ -296,11 +296,11 @@ const modelsByCliMap: Record<string, { value: string; label: string }[]> = {
     { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
     { value: 'claude-opus-4-7', label: 'Claude Opus 4.7' },
   ],
-  gemini: [
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-    { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-    { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro Preview' },
-    { value: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite' },
+  agy: [
+    { value: 'Gemini 3.5 Flash (Medium)', label: 'Gemini 3.5 Flash (Medium)' },
+    { value: 'Gemini 3.1 Pro (High)', label: 'Gemini 3.1 Pro (High)' },
+    { value: 'GPT-OSS 120B (Medium)', label: 'GPT-OSS 120B (Medium)' },
+    { value: 'Claude Sonnet 4.6 (Thinking)', label: 'Claude Sonnet 4.6 (Thinking)' },
   ],
   copilot: [],
 }
@@ -332,7 +332,7 @@ function onOrchestratorCliChange(cli: string) {
 
 function applySettings(loaded: AppSettings) {
   Object.assign(settings.clis.claude, loaded.clis.claude)
-  Object.assign(settings.clis.gemini, loaded.clis.gemini)
+  Object.assign(settings.clis.agy, loaded.clis.agy)
   Object.assign(settings.clis.copilot, loaded.clis.copilot)
   settings.tokenBudget = loaded.tokenBudget
   Object.assign(settings.defaultOrchestrator, loaded.defaultOrchestrator)

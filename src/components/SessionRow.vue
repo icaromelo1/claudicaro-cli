@@ -162,7 +162,7 @@ function formatTime(date: Date | string) {
   return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
-function handleOutsideClick(e: MouseEvent) {
+function handleOutsideClick() {
   if (menuOpen.value) closeMenu()
 }
 

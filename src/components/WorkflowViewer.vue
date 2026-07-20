@@ -84,8 +84,8 @@
             marker-end="url(#wv-arrow)"
           />
           <path
-            :d="routerToCli(NODES.router, NODES.gemini)"
-            stroke="var(--cli-gemini)" stroke-width="1.5" fill="none"
+            :d="routerToCli(NODES.router, NODES.agy)"
+            stroke="var(--cli-agy)" stroke-width="1.5" fill="none"
             marker-end="url(#wv-arrow)"
           />
           <path
@@ -96,20 +96,20 @@
 
           <!-- Edge labels (router → cli) -->
           <text :x="NODES.claude.x + NODE_W / 2" :y="NODES.claude.y - 6" class="wv-edge-label" text-anchor="middle">code_review, debug</text>
-          <text :x="NODES.gemini.x + NODE_W / 2" :y="NODES.gemini.y - 6" class="wv-edge-label" text-anchor="middle">web_search, vision</text>
+          <text :x="NODES.agy.x + NODE_W / 2" :y="NODES.agy.y - 6" class="wv-edge-label" text-anchor="middle">web_search, vision</text>
           <text :x="NODES.copilot.x + NODE_W / 2" :y="NODES.copilot.y - 6" class="wv-edge-label" text-anchor="middle">shell, create_pr</text>
 
           <!-- Normal: CLIs → Result -->
           <template v-if="!showFailovers">
             <path :d="cliToResult(NODES.claude, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToResult(NODES.gemini, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.agy, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
             <path :d="cliToResult(NODES.copilot, NODES.result)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
           </template>
 
           <!-- Failover paths -->
           <template v-if="showFailovers">
             <path :d="cliToResult(NODES.claude, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
-            <path :d="cliToResult(NODES.gemini, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
+            <path :d="cliToResult(NODES.agy, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
             <path :d="cliToResult(NODES.copilot, NODES.failover)" stroke="var(--border-strong)" stroke-width="1.5" fill="none" marker-end="url(#wv-arrow)" />
 
             <!-- Failover → Redirect (Sim) -->
@@ -240,33 +240,33 @@
             </text>
           </g>
 
-          <!-- Node: Gemini -->
+          <!-- Node: Agy -->
           <g
             class="wv-node"
-            :class="{ 'wv-node--selected': selectedNode === 'gemini', 'wv-node--active': isActiveCli('gemini') }"
-            @click="selectNode('gemini')"
-            @mouseenter="e => showTooltip(e, 'gemini')"
+            :class="{ 'wv-node--selected': selectedNode === 'agy', 'wv-node--active': isActiveCli('agy') }"
+            @click="selectNode('agy')"
+            @mouseenter="e => showTooltip(e, 'agy')"
             @mousemove="e => moveTooltip(e)"
           >
             <rect
-              :x="NODES.gemini.x" :y="NODES.gemini.y"
+              :x="NODES.agy.x" :y="NODES.agy.y"
               :width="NODE_W" :height="NODE_H"
               rx="8"
-              :fill="isActiveCli('gemini') ? 'rgba(81,135,242,0.22)' : 'rgba(81,135,242,0.12)'"
-              stroke="var(--cli-gemini)"
-              :stroke-width="isActiveCli('gemini') ? 2.5 : 1.5"
-              :class="{ 'wv-pulse': isActiveCli('gemini') }"
+              :fill="isActiveCli('agy') ? 'rgba(81,135,242,0.22)' : 'rgba(81,135,242,0.12)'"
+              stroke="var(--cli-agy)"
+              :stroke-width="isActiveCli('agy') ? 2.5 : 1.5"
+              :class="{ 'wv-pulse': isActiveCli('agy') }"
             />
             <circle
-              :cx="NODES.gemini.x + 14"
-              :cy="NODES.gemini.y + NODE_H / 2"
+              :cx="NODES.agy.x + 14"
+              :cy="NODES.agy.y + NODE_H / 2"
               r="4"
-              fill="var(--cli-gemini)"
+              fill="var(--cli-agy)"
             />
-            <text :x="NODES.gemini.x + 26" :y="my(NODES.gemini)" class="wv-node-label wv-node-label--gemini" dominant-baseline="middle">
-              Gemini
+            <text :x="NODES.agy.x + 26" :y="my(NODES.agy)" class="wv-node-label wv-node-label--agy" dominant-baseline="middle">
+              Agy
             </text>
-            <text :x="NODES.gemini.x + 26" :y="my(NODES.gemini) + 13" class="wv-node-sublabel" dominant-baseline="middle">
+            <text :x="NODES.agy.x + 26" :y="my(NODES.agy) + 13" class="wv-node-sublabel" dominant-baseline="middle">
               EXECUTOR
             </text>
           </g>
@@ -512,7 +512,7 @@ const NODES = {
   classify: { x: 220, y: SVG_H / 2 - NODE_H / 2 },
   router:   { x: 400 + DIAMOND_W / 2, y: SVG_H / 2 },  // centro do diamante
   claude:   { x: 580, y: 40 },
-  gemini:   { x: 580, y: SVG_H / 2 - NODE_H / 2 },
+  agy:      { x: 580, y: SVG_H / 2 - NODE_H / 2 },
   copilot:  { x: 580, y: SVG_H - 40 - NODE_H },
   result:   { x: 760, y: SVG_H / 2 - NODE_H / 2 },
   // failover e redirect aparecem abaixo de claude quando showFailovers=true
@@ -590,13 +590,13 @@ const TOOLTIP_DATA: Record<string, { title: string; lines: string[] }> = {
       'Flag: --dangerously-skip-permissions',
     ],
   },
-  gemini: {
-    title: 'Gemini (EXECUTOR)',
+  agy: {
+    title: 'Agy (EXECUTOR)',
     lines: [
-      'gemini-2.5-flash → web_search, docs, vision',
-      'gemini-2.5-pro → log_analysis, cross_repo_audit',
-      'gemini-3-pro-preview → complex_research',
-      'Flag: --yolo',
+      'Gemini 3.5 Flash (Medium) → web_search, docs, vision',
+      'Gemini 3.1 Pro (High) → log_analysis, cross_repo_audit',
+      'GPT-OSS 120B (Medium) → complex_research',
+      'Flag: --dangerously-skip-permissions',
     ],
   },
   copilot: {
@@ -612,7 +612,7 @@ const TOOLTIP_DATA: Record<string, { title: string; lines: string[] }> = {
     title: 'Failover?',
     lines: [
       'Verifica se houve erro na execução.',
-      'CONTEXT_LENGTH → redirect gemini-2.5-pro',
+      'CONTEXT_LENGTH → redirect Gemini 3.1 Pro (High)',
       'RATE_LIMIT → backoff 5s, até 3 tentativas',
       'MODEL_OVERLOADED → downgrade model chain',
       'TIMEOUT → modelo mais rápido',
@@ -623,7 +623,7 @@ const TOOLTIP_DATA: Record<string, { title: string; lines: string[] }> = {
     title: 'Redirect',
     lines: [
       'Rerota para outro CLI ou modelo.',
-      'Ex: claude overflow → gemini-2.5-pro',
+      'Ex: claude overflow → Gemini 3.1 Pro (High)',
       'Ex: opus overloaded → sonnet → haiku',
     ],
   },
@@ -705,14 +705,14 @@ const MERMAID_DIAGRAM = `graph LR
   Input[Entrada do usuário] --> Classifier[Classificador de Task]
   Classifier --> Router[Router]
   Router --> Claude[Claude CLI]
-  Router --> Gemini[Gemini CLI]
+  Router --> Agy[Agy CLI]
   Router --> Copilot[Copilot CLI]
   Claude -->|erro| Failover[Failover]
-  Gemini -->|erro| Failover
+  Agy -->|erro| Failover
   Failover --> Claude
-  Failover --> Gemini
+  Failover --> Agy
   Claude --> Output[Resposta]
-  Gemini --> Output
+  Agy --> Output
   Copilot --> Output`
 
 async function exportMermaid() {
@@ -745,7 +745,7 @@ const chatMessagesEl = ref<HTMLElement | null>(null)
 function cliColor(cli: string): string {
   const map: Record<string, string> = {
     claude: '#D97757',
-    gemini: '#5187F2',
+    agy: '#5187F2',
     copilot: '#B5C0CC',
   }
   return map[cli] ?? 'var(--text-secondary)'
@@ -754,7 +754,7 @@ function cliColor(cli: string): string {
 function cliBadgeBg(cli: string): string {
   const map: Record<string, string> = {
     claude: 'rgba(217,119,87,0.15)',
-    gemini: 'rgba(81,135,242,0.15)',
+    agy: 'rgba(81,135,242,0.15)',
     copilot: 'rgba(181,192,204,0.12)',
   }
   return map[cli] ?? 'var(--bg-elevated)'
@@ -1257,7 +1257,7 @@ onMounted(() => {
 
 :deep(.wv-node-label--accent)  { fill: var(--accent); }
 :deep(.wv-node-label--claude)  { fill: var(--cli-claude); }
-:deep(.wv-node-label--gemini)  { fill: var(--cli-gemini); }
+:deep(.wv-node-label--agy)  { fill: var(--cli-agy); }
 :deep(.wv-node-label--copilot) { fill: var(--cli-copilot); }
 :deep(.wv-node-label--warn)    { fill: var(--warning); }
 

@@ -12,7 +12,7 @@ export interface CliSettings {
 export interface AppSettings {
   clis: {
     claude: CliSettings
-    gemini: CliSettings
+    agy: CliSettings
     copilot: CliSettings
   }
   tokenBudget: number
@@ -27,7 +27,7 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   clis: {
     claude: { enabled: true, binaryPath: 'claude', defaultModel: 'claude-sonnet-4-6', defaultBypass: true },
-    gemini: { enabled: true, binaryPath: 'gemini', defaultModel: 'gemini-2.5-flash', defaultBypass: true },
+    agy: { enabled: true, binaryPath: 'agy', defaultModel: 'Gemini 3.5 Flash (Medium)', defaultBypass: true },
     copilot: { enabled: true, binaryPath: 'gh', defaultModel: '', defaultBypass: false },
   },
   tokenBudget: 100000,
@@ -90,7 +90,7 @@ export class SettingsStore {
       ...partial,
       clis: {
         claude: { ...DEFAULT_SETTINGS.clis.claude, ...(partial.clis?.claude ?? {}) },
-        gemini: { ...DEFAULT_SETTINGS.clis.gemini, ...(partial.clis?.gemini ?? {}) },
+        agy: { ...DEFAULT_SETTINGS.clis.agy, ...(partial.clis?.agy ?? {}) },
         copilot: { ...DEFAULT_SETTINGS.clis.copilot, ...(partial.clis?.copilot ?? {}) },
       },
       defaultOrchestrator: {

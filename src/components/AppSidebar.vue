@@ -171,11 +171,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
-import type { SessionSummary, SessionGroup } from 'src/types/claudicaro'
+import type { SessionSummary } from 'src/types/claudicaro'
 import SessionRow from './SessionRow.vue'
 import UserProfileModal from './UserProfileModal.vue'
 
-const props = defineProps<{ showSessions?: boolean; expanded?: boolean }>()
+defineProps<{ showSessions?: boolean; expanded?: boolean }>()
 const emit = defineEmits<{ 'new-session': []; toggle: [] }>()
 
 const { sessions, groups, currentSessionId, selectSession, renameSession, pinSession, moveToGroup, deleteSession } = useSessions()
@@ -206,7 +206,7 @@ const sessionsByGroup = computed(() => {
   const map: Record<string, SessionSummary[]> = {}
   for (const s of filteredSessions.value) {
     if (s.groupId && !s.pinnedAt) {
-      ;(map[s.groupId] ??= []).push(s)
+      (map[s.groupId] ??= []).push(s)
     }
   }
   return map

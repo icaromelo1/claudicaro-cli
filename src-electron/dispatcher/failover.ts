@@ -10,13 +10,13 @@ export async function handleFailover(
   onToken?: (chunk: string) => void,
 ): Promise<DispatchResult> {
   if (err.code === 'CONTEXT_LENGTH_EXCEEDED') {
-    const fallback = adapters.get('gemini')
+    const fallback = adapters.get('agy')
     if (fallback) {
       const result = await fallback.invoke({
         task: req.task,
-        model: 'gemini-2.5-pro',
-        modelFlag: '-m pro',
-        bypassFlag: '--yolo',
+        model: 'Gemini 3.1 Pro (High)',
+        modelFlag: '--model "Gemini 3.1 Pro (High)"',
+        bypassFlag: '--dangerously-skip-permissions',
         sessionId: req.sessionId,
         onToken: onToken ?? req.onToken,
       })
@@ -29,8 +29,8 @@ export async function handleFailover(
     if (adapter) {
       const result = await adapter.invoke({
         task: req.task,
-        model: original.cli === 'gemini' ? 'gemini-2.5-flash' : 'claude-haiku-4-5-20251001',
-        modelFlag: original.cli === 'gemini' ? '-m flash' : '--model claude-haiku-4-5-20251001',
+        model: original.cli === 'agy' ? 'Gemini 3.5 Flash (Medium)' : 'claude-haiku-4-5-20251001',
+        modelFlag: original.cli === 'agy' ? '--model "Gemini 3.5 Flash (Medium)"' : '--model claude-haiku-4-5-20251001',
         bypassFlag: original.bypassFlag,
         sessionId: req.sessionId,
         onToken: onToken ?? req.onToken,
@@ -59,16 +59,16 @@ export async function handleFailover(
     }
   }
 
-  // Rate limit: retry once with 5s backoff on Gemini
+  // Rate limit: retry once with 5s backoff on Agy
   if (err.code === 'RATE_LIMIT_EXCEEDED') {
     await new Promise(r => setTimeout(r, 5000))
-    const fallback = adapters.get('gemini') ?? adapters.get(original.cli)
+    const fallback = adapters.get('agy') ?? adapters.get(original.cli)
     if (fallback) {
       const result = await fallback.invoke({
         task: req.task,
-        model: 'gemini-2.5-flash',
-        modelFlag: '-m flash',
-        bypassFlag: '--yolo',
+        model: 'Gemini 3.5 Flash (Medium)',
+        modelFlag: '--model "Gemini 3.5 Flash (Medium)"',
+        bypassFlag: '--dangerously-skip-permissions',
         sessionId: req.sessionId,
         onToken: onToken ?? req.onToken,
       })
