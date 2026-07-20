@@ -1,4 +1,4 @@
-# Playbook: Atualizacao do Claudicaro CLI
+# Playbook: Atualizacao do Icarus Code
 
 ## Verificar atualizacao disponivel
 
@@ -17,7 +17,7 @@ git diff HEAD origin/main --stat
 
 ## Passos de atualizacao
 
-1. Feche o Claudicaro CLI completamente
+1. Feche o Icarus Code completamente
 
 2. Faça backup do banco antes de atualizar (ver `backup.md`):
 
@@ -43,7 +43,7 @@ npm install
 npm run build
 ```
 
-6. Reinicie o Claudicaro CLI
+6. Reinicie o Icarus Code
 
 ## Rollback
 
@@ -79,7 +79,7 @@ git checkout main
 
 Após a atualização, confirme que o app está funcionando:
 
-1. Abra o Claudicaro CLI e verifique a tela de saúde (`/health`)
+1. Abra o Icarus Code e verifique a tela de saúde (`/health`)
 2. Execute os testes automatizados:
 
 ```bash

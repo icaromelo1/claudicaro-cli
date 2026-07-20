@@ -4,12 +4,12 @@
 
 ## Contexto
 
-O `claudicaro-cli` orquestra Claude Code, Gemini e Copilot hoje. O ecossistema do Icaro ganhou dois CLIs novos — **Agy** (multi-modelo próprio: Gemini 3.5/3.1, Claude Sonnet/Opus, GPT-OSS 120B) e **Codex** (OpenAI) — e a pergunta inicial ("adicionar 2 adapters") evoluiu, ao longo do brainstorming, pra um objetivo mais específico: **roteamento automático que considera qual assinatura tem folga de quota**, sem exigir que o usuário informe isso manualmente toda vez.
+O `icarus-code` orquestra Claude Code, Gemini e Copilot hoje. O ecossistema do Icaro ganhou dois CLIs novos — **Agy** (multi-modelo próprio: Gemini 3.5/3.1, Claude Sonnet/Opus, GPT-OSS 120B) e **Codex** (OpenAI) — e a pergunta inicial ("adicionar 2 adapters") evoluiu, ao longo do brainstorming, pra um objetivo mais específico: **roteamento automático que considera qual assinatura tem folga de quota**, sem exigir que o usuário informe isso manualmente toda vez.
 
 Assinaturas reais confirmadas nesta sessão: **Claude Pro** (quota mais apertada, é o motor principal) e **Agy pago** (mais folga, dá acesso aos mesmos modelos Sonnet/Opus por uma via de quota diferente). Codex está em **plano free** (confirmado via decodificação de JWT local) — baixa prioridade até virar assinatura paga. Copilot e Gemini não são o foco econômico agora.
 
 Este spec cobre dois sistemas irmãos, que compartilham o mesmo mecanismo de detecção mas têm implementações separadas (não há runtime compartilhado entre eles):
-- **`claudicaro-cli`** (Electron/TS) — router do chat.
+- **`icarus-code`** (Electron/TS) — router do chat.
 - **Ambiente Claude Code deste Mac** (`~/.claude/skills/dispatch` e `~/.claude/skills/plan-analyzer`) — roteamento de tasks avulsas e de waves de plano.
 
 ## Pesquisa de viabilidade (já validada, não é suposição)
@@ -28,9 +28,9 @@ Busca ampla por `quota|plan_type|tier|subscription|credits|entitlement|billing` 
 
 ## Arquitetura
 
-Sem lib compartilhada entre `claudicaro-cli` (Electron/Node) e as skills deste ambiente (markdown + Bash, sem runtime próprio) — forçar isso seria abstração sem consumidor real. Mesma estratégia de detecção, duas implementações pequenas:
+Sem lib compartilhada entre `icarus-code` (Electron/Node) e as skills deste ambiente (markdown + Bash, sem runtime próprio) — forçar isso seria abstração sem consumidor real. Mesma estratégia de detecção, duas implementações pequenas:
 
-- **`claudicaro-cli`**: módulo TS `src-electron/subscriptions/detect.ts`, chamado pelo dispatcher.
+- **`icarus-code`**: módulo TS `src-electron/subscriptions/detect.ts`, chamado pelo dispatcher.
 - **Ambiente Claude Code**: script standalone (`~/.claude/skills/dispatch/scripts/detect-subscriptions.sh` ou `.mjs`), invocado via `Bash` pelas skills `/dispatch` e `/plan-analyzer`.
 
 ## Detecção de assinatura
@@ -55,7 +55,7 @@ detectSubscriptions() → [
 
 ## Capability matrix por modelo
 
-Novo arquivo `rules/models-capabilities.yaml` no `claudicaro-cli`, granular por modelo (não só por CLI):
+Novo arquivo `rules/models-capabilities.yaml` no `icarus-code`, granular por modelo (não só por CLI):
 
 ```yaml
 claude-opus-4-7:
@@ -90,7 +90,7 @@ codex:gpt-5.6-terra:
 
 O campo `planTierNeeded` conecta com a detecção: se o tier detectado do CLI candidato for `free` (baixa quota) e existir alternativa pro mesmo `strength`, o candidato é deprioritizado automaticamente — sem hardcode de "não usar Codex".
 
-## Router inteligente — `claudicaro-cli`
+## Router inteligente — `icarus-code`
 
 `router.ts::route()` deixa de ser mapeamento 1:1 estático (task_type → 1 CLI fixo) e passa a escolher entre candidatos:
 
@@ -120,14 +120,14 @@ Mudanças:
 
 ## Testes
 
-- `claudicaro-cli`: teste E2E real (mesmo padrão já usado pro `CopilotAdapter`) validando a extração de `subscriptionType`/`chatgpt_plan_type` contra os arquivos reais da máquina — sem mockar o parsing.
+- `icarus-code`: teste E2E real (mesmo padrão já usado pro `CopilotAdapter`) validando a extração de `subscriptionType`/`chatgpt_plan_type` contra os arquivos reais da máquina — sem mockar o parsing.
 - `/dispatch`/`/plan-analyzer`: validação manual com 2-3 planos reais após implementado (são skills markdown, não há suíte automatizada pra elas).
 
 ## Decomposição para implementação
 
 Cada item vira um plano próprio via `EnterPlanMode` + `/plan-analyzer`, não uma implementação única:
 
-1. Módulo de detecção (TS no `claudicaro-cli` + script standalone no ambiente Claude Code)
+1. Módulo de detecção (TS no `icarus-code` + script standalone no ambiente Claude Code)
 2. `rules/models-capabilities.yaml` real
-3. Router candidato+penalidade no `claudicaro-cli` (consome 1+2)
+3. Router candidato+penalidade no `icarus-code` (consome 1+2)
 4. Atualização de `/dispatch` e `/plan-analyzer` (consome 1+2, adiciona Agy/Codex + critério de tier)

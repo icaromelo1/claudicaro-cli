@@ -1,4 +1,4 @@
-// metrics/index.ts — Claudicaro Metrics Collector
+// metrics/index.ts — Icarus Code Metrics Collector
 // Versão: 1.0 — 2026-05-12
 
 export interface MetricEntry {

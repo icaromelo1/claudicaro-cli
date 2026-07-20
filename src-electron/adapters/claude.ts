@@ -1,4 +1,4 @@
-// claude.ts — Claudicaro Adapter: Claude Code CLI
+// claude.ts — Icarus Code Adapter: Claude Code CLI
 // Versão: 1.0 — 2026-05-12
 
 import { spawn } from 'child_process'
@@ -172,9 +172,5 @@ export class ClaudeAdapter implements IAdapter {
         }
       })
     })
-  }
-
-  async dumpContext(_sessionId: string): Promise<string> {
-    return ''
   }
 }

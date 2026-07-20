@@ -1,4 +1,4 @@
-# Claudicaro CLI — Checkpoint
+# Icarus Code — Checkpoint
 
 > Gerado em: 2026-05-13  
 > Branch: main | Commits: 30+
@@ -32,9 +32,9 @@ src/                   ← Renderer (Vue 3 + Quasar)
   composables/         ← useChat.ts
   layouts/             ← MainLayout.vue (APENAS router-view — sem navegação)
   router/              ← routes.ts
-  types/               ← claudicaro.d.ts (Window.claudicaro tipado)
+  types/               ← icarus.d.ts (Window.icarus tipado)
 
-prisma/                ← schema.prisma + claudicaro.db (SQLite)
+prisma/                ← schema.prisma + icarus.db (SQLite)
 tests/                 ← 92 testes Vitest (unit + integration + E2E CLI health)
 docs/playbooks/        ← backup.md, update.md, troubleshooting.md
 .github/workflows/     ← ci.yml (lint + test + build)

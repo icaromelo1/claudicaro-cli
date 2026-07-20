@@ -11,7 +11,7 @@
 
 ### Via IPC no app
 
-No painel de configurações do Claudicaro CLI, acesse **Configurações > Banco de Dados > Fazer Backup**. O app envia um evento IPC para o processo main, que executa o backup e retorna o caminho do arquivo gerado.
+No painel de configurações do Icarus Code, acesse **Configurações > Banco de Dados > Fazer Backup**. O app envia um evento IPC para o processo main, que executa o backup e retorna o caminho do arquivo gerado.
 
 ### Via script standalone
 
@@ -22,7 +22,7 @@ npx ts-node scripts/backup.ts
 O script copia o arquivo SQLite atual para `prisma/backups/` com timestamp no nome:
 
 ```
-prisma/backups/claudicaro-2026-05-12T15-30-00.db
+prisma/backups/icarus-2026-05-12T15-30-00.db
 ```
 
 ## Verificacao
@@ -43,15 +43,15 @@ O retorno deve ser `ok`.
 
 ## Restauracao
 
-1. Feche o Claudicaro CLI completamente
+1. Feche o Icarus Code completamente
 2. Localize o arquivo de backup desejado em `prisma/backups/`
 3. Copie o arquivo de volta para `prisma/`:
 
 ```bash
-cp prisma/backups/claudicaro-<timestamp>.db prisma/claudicaro.db
+cp prisma/backups/icarus-<timestamp>.db prisma/icarus.db
 ```
 
-4. Reinicie o Claudicaro CLI
+4. Reinicie o Icarus Code
 
 ## Retencao
 

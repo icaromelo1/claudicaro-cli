@@ -1,9 +1,10 @@
-// sanitize/index.ts — Claudicaro: Input Sanitization Layer
+// sanitize/index.ts — Icarus Code: Input Sanitization Layer
 // Versão: 1.0 — 2026-05-13
 
 const MAX_INPUT_LENGTH = 32_000
 
 // Regex para sequências de escape ANSI (ex: \x1b[32m, \x1b[0m, \x1b[1;31m)
+// eslint-disable-next-line no-control-regex
 const ANSI_ESCAPE_REGEX = /\x1b\[[0-9;]*[mGKHFABCDsuJh]/g
 
 /**

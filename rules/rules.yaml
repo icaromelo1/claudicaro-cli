@@ -1,0 +1,68 @@
+# rules.yaml — Icarus Code Dispatcher routing rules
+# Consumido por src-electron/dispatcher/router.ts (loadRules)
+# Fonte: capability matrix documentada em COPILOT_PLANO_CLAUDICARO_CLI.MD
+
+settings:
+  default_cli: claude
+  default_model: claude-sonnet-4-6
+  failover_enabled: true
+  session_manager_ack_timeout_ms: 5000
+
+routing_rules:
+  - task_types: [web_search, docs_update]
+    tool_requirement: web_search
+    cli: agy
+    model: "Gemini 3.5 Flash (Medium)"
+    model_flag: '--model "Gemini 3.5 Flash (Medium)"'
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [log_analysis, cross_repo_audit]
+    tool_requirement: long_context
+    cli: agy
+    model: "Gemini 3.1 Pro (High)"
+    model_flag: '--model "Gemini 3.1 Pro (High)"'
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [screenshot, image_analysis]
+    tool_requirement: vision
+    cli: agy
+    model: "Gemini 3.5 Flash (Medium)"
+    model_flag: '--model "Gemini 3.5 Flash (Medium)"'
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [lint_fix, commit_message, summarization]
+    tool_requirement: quick_edit
+    cli: claude
+    model: claude-haiku-4-5-20251001
+    model_flag: "--model claude-haiku-4-5-20251001"
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [code_review, debug, multi_file_edit]
+    tool_requirement: code_analysis
+    cli: claude
+    model: claude-sonnet-4-6
+    model_flag: "--model claude-sonnet-4-6"
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [architecture, adr, system_design, strategic_planning]
+    tool_requirement: reasoning
+    cli: claude
+    model: claude-opus-4-7
+    model_flag: "--model claude-opus-4-7"
+    bypass_flag: "--dangerously-skip-permissions"
+
+  - task_types: [create_pr, create_branch, shell_suggestion]
+    tool_requirement: github_native
+    cli: copilot
+    role: CONSELHEIRO
+    requires_confirmation: true
+    dry_run_required: true
+
+  - task_types: [complex_feature]
+    tool_requirement: code_analysis
+    cli: claude
+    model: claude-sonnet-4-6
+    model_flag: "--model claude-sonnet-4-6"
+    bypass_flag: "--dangerously-skip-permissions"
+
+failover_rules: {}

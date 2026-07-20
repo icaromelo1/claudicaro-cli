@@ -1,4 +1,4 @@
-// types.ts — Claudicaro Dispatcher Interface Contracts
+// types.ts — Icarus Code Dispatcher Interface Contracts
 // Versão: 1.0 — 2026-05-12
 
 export interface AdapterInvokeParams {
@@ -16,7 +16,7 @@ export interface AdapterInvokeParams {
 
 export interface AdapterInvokeResult {
   content: string           // resposta completa
-  cli: string               // "claude" | "gemini" | "copilot"
+  cli: string               // "claude" | "agy" | "copilot"
   model: string             // modelo que respondeu
   tokens?: number           // tokens consumidos (se disponível)
   latencyMs: number         // tempo total de resposta
@@ -34,11 +34,10 @@ export interface AdapterHealthResult {
 }
 
 export interface IAdapter {
-  readonly name: string     // "claude" | "gemini" | "copilot"
+  readonly name: string     // "claude" | "agy" | "copilot"
   readonly role: 'EXECUTOR' | 'CONSELHEIRO'
 
   invoke(params: AdapterInvokeParams): Promise<AdapterInvokeResult>
-  dumpContext(sessionId: string): Promise<string>  // serializa contexto da sessão
   checkHealth(): Promise<AdapterHealthResult>
 }
 

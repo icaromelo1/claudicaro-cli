@@ -1,8 +1,8 @@
-# Claudicaro CLI
+# Icarus Code
 
 > Orquestrador de CLIs de IA para desktop — Claude Code, Gemini CLI e GitHub Copilot em uma única interface.
 
-Um app Electron + Vue 3 que age como dispatcher inteligente entre os três principais CLIs de IA. Você escreve o prompt uma vez — o Claudicaro decide qual CLI usa, com failover automático se um falhar.
+Um app Electron + Vue 3 que age como dispatcher inteligente entre os três principais CLIs de IA. Você escreve o prompt uma vez — o Icarus decide qual CLI usa, com failover automático se um falhar.
 
 ---
 
@@ -56,7 +56,7 @@ src/                           ← Renderer (Vue 3 + Quasar)
     LoginPage.vue              ← Google OAuth2
   composables/useChat.ts       ← Toda a lógica de estado do chat
 
-prisma/                        ← schema.prisma + claudicaro.db (SQLite)
+prisma/                        ← schema.prisma + icarus.db (SQLite)
 rules/rules.yaml               ← Regras de roteamento do dispatcher
 tests/                         ← 92 testes Vitest
 .github/workflows/ci.yml       ← Lint + test + build em push/PR

@@ -1,7 +1,7 @@
-// security/index.ts — Claudicaro: Security Layer
+// security/index.ts — Icarus Code: Security Layer
 // Versão: 1.0 — 2026-05-13
 
-const ALLOWED_CLIS = new Set(['claude', 'gemini', 'copilot', 'gh'])
+const ALLOWED_CLIS = new Set(['claude', 'agy', 'copilot', 'gh'])
 
 // Alphanumérico, hífens, pontos — sem espaços ou chars especiais
 // Comprimento: 1 a 100 caracteres
@@ -11,7 +11,7 @@ const MAX_TASK_LENGTH = 32_000
 
 /**
  * Valida se o nome do CLI é permitido.
- * Retorna true apenas para: 'claude', 'gemini', 'copilot', 'gh'
+ * Retorna true apenas para: 'claude', 'agy', 'copilot', 'gh'
  */
 export function validateCliName(cli: string): boolean {
   return ALLOWED_CLIS.has(cli)

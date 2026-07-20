@@ -1,5 +1,6 @@
-// copilot.ts — Claudicaro Adapter: GitHub Copilot CLI
-// Versão: 1.0 — 2026-05-12
+// copilot.ts — Icarus Code Adapter: GitHub Copilot CLI
+// Versão: 2.0 — 2026-07-19 — migrado de `gh copilot suggest/explain` (API legada, quebrada)
+// para o binário standalone `copilot` com --output-format json e --session-id nativo.
 
 import { spawn } from 'child_process'
 import type {
@@ -27,20 +28,22 @@ export class CopilotAdapter implements IAdapter {
     guardDispatch('copilot', params.task)
     const startMs = Date.now()
 
-    let task = sanitizeInput(params.task)
-    if (params.contextMessages && params.contextMessages.length > 0) {
-      const prefix = params.contextMessages
-        .map((m) => `[${m.role === 'user' ? 'Usuário' : 'IA'}]: ${m.content}`)
-        .join('\n')
-      task = `Contexto da conversa anterior:\n${prefix}\n\nMensagem atual:\n${task}`
-    }
-    // Route to explain or suggest based on task content
-    const subcommand = task.toLowerCase().includes('explain') ? 'explain' : 'suggest'
-    const args = ['copilot', subcommand, task]
+    const args: string[] = ['-p', sanitizeInput(params.task), '--allow-all', '--output-format', 'json']
 
-    const content = await new Promise<string>((resolve, reject) => {
-      const proc = spawn('gh', args, { shell: false })
-      let stdout = ''
+    if (params.cliSessionId) {
+      args.push('--session-id', params.cliSessionId)
+    }
+
+    if (params.modelFlag) {
+      args.push(...params.modelFlag.trim().split(/\s+/))
+    }
+
+    const { content, sessionId, tokens } = await new Promise<{ content: string; sessionId?: string; tokens?: number }>((resolve, reject) => {
+      const proc = spawn('copilot', args, { shell: false })
+      let lineBuffer = ''
+      let finalContent = ''
+      let foundSessionId: string | undefined
+      let outputTokens: number | undefined
       let stderr = ''
 
       if (params.abortSignal) {
@@ -48,9 +51,29 @@ export class CopilotAdapter implements IAdapter {
       }
 
       proc.stdout.on('data', (chunk: Buffer) => {
-        const text = chunk.toString()
-        stdout += text
-        params.onToken?.(text)
+        lineBuffer += chunk.toString()
+        const lines = lineBuffer.split('\n')
+        lineBuffer = lines.pop() ?? ''
+
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line) as Record<string, unknown>
+            if (event.type === 'assistant.message_delta') {
+              const data = event.data as Record<string, unknown> | undefined
+              const delta = typeof data?.deltaContent === 'string' ? data.deltaContent : ''
+              if (delta) params.onToken?.(delta)
+            } else if (event.type === 'assistant.message') {
+              const data = event.data as Record<string, unknown> | undefined
+              if (typeof data?.content === 'string') finalContent = data.content
+              if (typeof data?.outputTokens === 'number') outputTokens = data.outputTokens
+            } else if (event.type === 'result') {
+              if (typeof event.sessionId === 'string') foundSessionId = event.sessionId
+            }
+          } catch {
+            // ignore non-JSON lines
+          }
+        }
       })
 
       proc.stderr.on('data', (chunk: Buffer) => {
@@ -59,30 +82,15 @@ export class CopilotAdapter implements IAdapter {
 
       proc.on('error', (err: NodeJS.ErrnoException) => {
         if (err.code === 'ENOENT') {
-          reject(
-            new AdapterError(
-              'gh CLI not found. Make sure `gh` is in PATH.',
-              'CLI_NOT_FOUND',
-              'copilot',
-              false,
-            ),
-          )
+          reject(new AdapterError('Copilot CLI not found. Make sure `copilot` is in PATH.', 'CLI_NOT_FOUND', 'copilot', false))
         } else {
-          reject(
-            new AdapterError(
-              err.message,
-              'UNKNOWN',
-              'copilot',
-              false,
-            ),
-          )
+          reject(new AdapterError(err.message, 'UNKNOWN', 'copilot', false))
         }
       })
 
       proc.on('close', (code, signal) => {
         if (code === 0) {
-          // CONSELHEIRO: capture output only, never execute suggested commands
-          resolve(stdout)
+          resolve({ content: finalContent, sessionId: foundSessionId, tokens: outputTokens })
           return
         }
 
@@ -91,17 +99,16 @@ export class CopilotAdapter implements IAdapter {
           return
         }
 
+        if (stderr.toLowerCase().includes('rate limit')) {
+          reject(new AdapterError(`Copilot rate limit exceeded: ${stderr.trim()}`, 'RATE_LIMIT_EXCEEDED', 'copilot', true))
+          return
+        }
+
         const parsed = parseStderr(stderr)
-        reject(
-          new AdapterError(
-            parsed.userMessage || `gh copilot exited with code ${code}`,
-            'UNKNOWN',
-            'copilot',
-            false,
-            parsed.userMessage,
-            parsed.rawOutput,
-          ),
-        )
+        reject(new AdapterError(
+          parsed.userMessage || `Copilot exited with code ${code}`,
+          'UNKNOWN', 'copilot', false, parsed.userMessage, parsed.rawOutput,
+        ))
       })
     })
 
@@ -109,7 +116,9 @@ export class CopilotAdapter implements IAdapter {
       content,
       cli: 'copilot',
       model: params.model ?? 'copilot',
+      tokens,
       latencyMs: Date.now() - startMs,
+      cliSessionId: sessionId,
       routingMeta: {
         reason: 'conselheiro-suggestion',
         toolRequirement: 'copilot',
@@ -119,8 +128,7 @@ export class CopilotAdapter implements IAdapter {
 
   async checkHealth(): Promise<AdapterHealthResult> {
     return new Promise((resolve) => {
-      // gh extension list | grep copilot
-      const proc = spawn('sh', ['-c', 'gh extension list | grep copilot'], { shell: false })
+      const proc = spawn('copilot', ['--version'], { shell: false })
       let stdout = ''
       let stderr = ''
 
@@ -132,19 +140,12 @@ export class CopilotAdapter implements IAdapter {
       })
 
       proc.on('close', (code) => {
-        if (code === 0 && stdout.trim().length > 0) {
+        if (code === 0) {
           resolve({ available: true, version: stdout.trim() })
         } else {
-          resolve({
-            available: false,
-            error: stderr.trim() || 'gh-copilot extension not found',
-          })
+          resolve({ available: false, error: stderr.trim() || `exit code ${code}` })
         }
       })
     })
-  }
-
-  async dumpContext(_sessionId: string): Promise<string> {
-    return ''
   }
 }

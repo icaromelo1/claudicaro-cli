@@ -1,4 +1,4 @@
-# Claudicaro CLI — Status de Execução
+# Icarus Code — Status de Execução
 
 ## Wave 1 ✅ concluída
 - [x] T1: Setup Quasar + Electron + Vue 3 + TypeScript — done

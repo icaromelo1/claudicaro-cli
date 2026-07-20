@@ -24,7 +24,7 @@ gh --version
 ```
 
 4. Se algum binário não for encontrado, reinstale via gerenciador de pacotes correspondente
-5. Reinicie o Claudicaro CLI após corrigir o PATH
+5. Reinicie o Icarus Code após corrigir o PATH
 
 ---
 
@@ -34,18 +34,18 @@ gh --version
 
 **Passos:**
 
-1. Feche o Claudicaro CLI
+1. Feche o Icarus Code
 2. Verifique a integridade do banco atual:
 
 ```bash
-sqlite3 prisma/claudicaro.db "PRAGMA integrity_check;"
+sqlite3 prisma/icarus.db "PRAGMA integrity_check;"
 ```
 
 3. Se retornar algo diferente de `ok`, restaure o backup mais recente:
 
 ```bash
 ls -lt prisma/backups/
-cp prisma/backups/<backup-mais-recente>.db prisma/claudicaro.db
+cp prisma/backups/<backup-mais-recente>.db prisma/icarus.db
 ```
 
 4. Reinicie o app e verifique se as sessões foram recuperadas
@@ -75,7 +75,7 @@ cp prisma/backups/<backup-mais-recente>.db prisma/claudicaro.db
 
 ```bash
 # macOS
-cat ~/Library/Logs/claudicaro-cli/main.log
+cat ~/Library/Logs/Icarus Code/main.log
 
 # Alternativa: diretório logs/ do projeto
 ls -lt logs/
@@ -91,13 +91,13 @@ npm run dev
 3. Verifique se há outro processo do app já rodando:
 
 ```bash
-ps aux | grep claudicaro
+ps aux | grep icarus
 ```
 
 4. Se houver processo travado, encerre-o:
 
 ```bash
-pkill -f claudicaro
+pkill -f icarus
 ```
 
 5. Reinicie o app
