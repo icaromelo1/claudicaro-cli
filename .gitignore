@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+dist-electron/
+.quasar/
+prisma/claudicaro.db
+prisma/claudicaro.db-journal
+*.log
+.DS_Store

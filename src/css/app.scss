@@ -1,0 +1,88 @@
+:root {
+  // Backgrounds (camadas, da mais funda pra mais elevada)
+  --bg-base: #0B0B0E;
+  --bg-canvas: #0B0B0E;
+  --bg-sidebar: #111114;
+  --bg-surface: #16161A;
+  --bg-elevated: #1C1C21;
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-active: rgba(255, 255, 255, 0.07);
+
+  // Texto
+  --text-primary: #F2F2F5;
+  --text-secondary: #B8B8C2;
+  --text-muted: #8A8A96;
+  --text-faint: #5C5C66;
+
+  // Bordas
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-focus: var(--accent);
+
+  // Accent (mint)
+  --accent: #3FCF8E;
+  --accent-dim: rgba(63, 207, 142, 0.14);
+  --accent-hover: #35B87D;
+
+  // Cores por CLI
+  --cli-claude: #D97757;
+  --cli-agy: #5187F2;
+  --cli-copilot: #B5C0CC;
+
+  // Semânticas
+  --error: #F2545B;
+  --warning: #F2A93B;
+  --success: #3FCF8E;
+  --info: #5187F2;
+
+  // Tipografia
+  --font-sans: 'Inter', -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --font-display: var(--font-sans);
+
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 15px;
+  --fs-2xl: 22px;
+
+  // Espaçamento
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 48px;
+
+  // Raio de borda
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-full: 999px;
+
+  // Sombras
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 0 3px var(--accent-dim);
+
+  // Layout
+  --titlebar-h: 52px;
+  --sidebar-w-collapsed: 64px;
+
+  // Vibrancy (translucência estilo macOS na titlebar)
+  --vibrancy: rgba(255, 255, 255, 0.03);
+  --vibrancy-strong: rgba(255, 255, 255, 0.06);
+}
+
+html, body, #q-app {
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
