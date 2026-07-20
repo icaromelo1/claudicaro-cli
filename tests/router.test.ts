@@ -78,6 +78,18 @@ describe('classifyTask', () => {
     // "code review" contains "review" but "web search" should match "search"
     expect(classifyTask('search for code review')).toBe('web_search')
   })
+
+  it('classifies PT-BR task phrasings', () => {
+    expect(classifyTask('pesquisa a doc do Nuxt 4 sobre layouts')).toBe('web_search')
+    expect(classifyTask('revisa a arquitetura do módulo de depósito')).toBe('architecture')
+    expect(classifyTask('corrige o lint no sgsa-api')).toBe('lint_fix')
+    expect(classifyTask('faz um resumo dessa PR')).toBe('summarization')
+    expect(classifyTask('depurar esse erro no service')).toBe('debug')
+    expect(classifyTask('refatorar o módulo de pagamento')).toBe('multi_file_edit')
+    expect(classifyTask('cria uma pr pra essa branch')).toBe('create_pr')
+    expect(classifyTask('implementar uma nova funcionalidade de exportação')).toBe('complex_feature')
+    expect(classifyTask('sugere um comando shell pra limpar logs')).toBe('shell_suggestion')
+  })
 })
 
 describe('route', () => {

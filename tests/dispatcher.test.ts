@@ -50,7 +50,6 @@ function makeFakeAdapter(name: string, invokeImpl?: (params: AdapterInvokeParams
     name,
     role: 'EXECUTOR',
     invoke: vi.fn(invokeImpl ?? defaultInvoke),
-    dumpContext: vi.fn(async () => ''),
     checkHealth: vi.fn(async (): Promise<AdapterHealthResult> => ({ available: true, version: '1.0.0' })),
   }
 }
@@ -84,18 +83,18 @@ describe('Dispatcher', () => {
     ).rejects.toThrow('not registered')
   })
 
-  it('failover CONTEXT_LENGTH_EXCEEDED → gemini', async () => {
+  it('failover CONTEXT_LENGTH_EXCEEDED → agy', async () => {
     const claudeAdapter = makeFakeAdapter('claude', async () => {
       throw new AdapterError('context too long', 'CONTEXT_LENGTH_EXCEEDED', 'claude', true)
     })
-    const geminiAdapter = makeFakeAdapter('gemini')
+    const agyAdapter = makeFakeAdapter('agy')
 
     dispatcher.register(claudeAdapter)
-    dispatcher.register(geminiAdapter)
+    dispatcher.register(agyAdapter)
 
     const result = await dispatcher.dispatch({ task: 'debug this', sessionId: 'session-1' })
 
-    expect(result.cli).toBe('gemini')
+    expect(result.cli).toBe('agy')
     expect(result.failoverUsed).toBe(true)
     expect(result.taskType).toBe('debug')
   })
@@ -126,16 +125,16 @@ describe('Dispatcher', () => {
     expect(callCount).toBe(2)
   })
 
-  it('failover RATE_LIMIT_EXCEEDED → gemini-flash after delay', async () => {
+  it('failover RATE_LIMIT_EXCEEDED → agy after delay', async () => {
     vi.useFakeTimers()
 
     const claudeAdapter = makeFakeAdapter('claude', async () => {
       throw new AdapterError('rate limited', 'RATE_LIMIT_EXCEEDED', 'claude', true)
     })
-    const geminiAdapter = makeFakeAdapter('gemini')
+    const agyAdapter = makeFakeAdapter('agy')
 
     dispatcher.register(claudeAdapter)
-    dispatcher.register(geminiAdapter)
+    dispatcher.register(agyAdapter)
 
     const dispatchPromise = dispatcher.dispatch({ task: 'debug this', sessionId: 'session-1' })
 
@@ -145,7 +144,7 @@ describe('Dispatcher', () => {
     const result = await dispatchPromise
 
     expect(result.failoverUsed).toBe(true)
-    expect(result.cli).toBe('gemini')
+    expect(result.cli).toBe('agy')
 
     vi.useRealTimers()
   })
@@ -155,7 +154,7 @@ describe('Dispatcher', () => {
       throw new AdapterError('context too long', 'CONTEXT_LENGTH_EXCEEDED', 'claude', true)
     })
 
-    // No gemini adapter registered
+    // No agy adapter registered
     dispatcher.register(claudeAdapter)
 
     await expect(
@@ -164,16 +163,16 @@ describe('Dispatcher', () => {
   })
 
   it('uses forceCli to override routing', async () => {
-    const geminiAdapter = makeFakeAdapter('gemini')
-    dispatcher.register(geminiAdapter)
+    const agyAdapter = makeFakeAdapter('agy')
+    dispatcher.register(agyAdapter)
 
     const result = await dispatcher.dispatch({
       task: 'debug this',
       sessionId: 'session-1',
-      forceCli: 'gemini',
+      forceCli: 'agy',
     })
 
-    expect(result.cli).toBe('gemini')
+    expect(result.cli).toBe('agy')
     expect(result.failoverUsed).toBe(false)
   })
 
@@ -190,13 +189,13 @@ describe('Dispatcher', () => {
 
   it('checkHealth returns results for all registered adapters', async () => {
     dispatcher.register(makeFakeAdapter('claude'))
-    dispatcher.register(makeFakeAdapter('gemini'))
+    dispatcher.register(makeFakeAdapter('agy'))
 
     const health = await dispatcher.checkHealth()
 
     expect(health).toHaveProperty('claude')
-    expect(health).toHaveProperty('gemini')
+    expect(health).toHaveProperty('agy')
     expect(health.claude.available).toBe(true)
-    expect(health.gemini.available).toBe(true)
+    expect(health.agy.available).toBe(true)
   })
 })

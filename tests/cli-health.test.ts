@@ -1,18 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { execSync } from 'child_process'
 
-function isCliAvailable(command: string): boolean {
-  try {
-    execSync(command, { stdio: 'pipe', timeout: 5000 })
-    return true
-  } catch (err: unknown) {
-    const error = err as { status?: number; stderr?: Buffer; message?: string }
-    // If exit code is non-zero due to auth/usage error (not missing flag), CLI is still available
-    if (error.status !== undefined) return true
-    return false
-  }
-}
-
 describe('CLI health (E2E)', () => {
   describe('claude', () => {
     const claudeAvailable = (() => {
@@ -54,6 +42,23 @@ describe('CLI health (E2E)', () => {
 
     it.skipIf(!geminiAvailable)('gemini --version exits with code 0', () => {
       expect(() => execSync('gemini --version', { stdio: 'pipe', timeout: 5000 })).not.toThrow()
+    })
+  })
+
+  describe('copilot', () => {
+    const copilotAvailable = (() => {
+      try { execSync('copilot --version', { stdio: 'pipe', timeout: 5000 }); return true } catch { return false }
+    })()
+
+    it.skipIf(!copilotAvailable)('copilot --version exits with code 0', () => {
+      expect(() => execSync('copilot --version', { stdio: 'pipe', timeout: 5000 })).not.toThrow()
+    })
+
+    it.skipIf(!copilotAvailable)('copilot --help exposes --output-format and --session-id (adapter contract)', () => {
+      const out = execSync('copilot --help', { stdio: 'pipe', timeout: 5000 }).toString()
+      expect(out).toMatch(/--output-format/)
+      expect(out).toMatch(/--session-id/)
+      expect(out).toMatch(/--allow-all/)
     })
   })
 

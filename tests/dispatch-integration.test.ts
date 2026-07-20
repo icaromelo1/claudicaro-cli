@@ -47,7 +47,6 @@ function makeMockAdapter(name: string, mockContent: string): IAdapter {
       latencyMs: 30,
       routingMeta: { reason: 'integration-test', toolRequirement: 'code_analysis' },
     })),
-    dumpContext: vi.fn(async () => ''),
     checkHealth: vi.fn(async (): Promise<AdapterHealthResult> => ({ available: true })),
   }
 }
