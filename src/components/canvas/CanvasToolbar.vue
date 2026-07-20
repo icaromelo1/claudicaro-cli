@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { PeerTurnOrder } from 'src/types/claudicaro'
+import type { PeerTurnOrder } from 'src/types/icarus'
 
 const TERMINAL_CLIS = ['claude', 'agy', 'codex', 'copilot']
 const HEADLESS_CLIS = ['claude', 'agy', 'copilot']

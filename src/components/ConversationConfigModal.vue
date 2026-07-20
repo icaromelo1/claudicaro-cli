@@ -166,7 +166,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { OrchestratorConfig } from 'src/types/claudicaro'
+import type { OrchestratorConfig } from 'src/types/icarus'
 
 const emit = defineEmits<{
   (e: 'confirm', config: OrchestratorConfig): void

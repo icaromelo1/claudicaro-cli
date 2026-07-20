@@ -16,7 +16,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import type { CanvasCard } from 'src/types/claudicaro'
+import type { CanvasCard } from 'src/types/icarus'
 
 const props = defineProps<{ card: CanvasCard }>()
 const emit = defineEmits<{

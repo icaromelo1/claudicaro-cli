@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import type { CanvasCard, PeerTurn } from 'src/types/claudicaro'
+import type { CanvasCard, PeerTurn } from 'src/types/icarus'
 
 const props = defineProps<{ card: CanvasCard; label: string }>()
 const emit = defineEmits<{ close: [] }>()

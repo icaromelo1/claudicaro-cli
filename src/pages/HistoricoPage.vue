@@ -86,7 +86,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSessions } from 'src/composables/useSessions'
-import type { SessionSummary } from 'src/types/claudicaro'
+import type { SessionSummary } from 'src/types/icarus'
 
 const router = useRouter()
 const { selectSession, deleteSession } = useSessions()

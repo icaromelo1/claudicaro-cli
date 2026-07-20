@@ -105,7 +105,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import type { LogEntry } from 'src/types/claudicaro'
+import type { LogEntry } from 'src/types/icarus'
 
 interface HealthRecord {
   available: boolean

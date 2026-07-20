@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import type { CanvasCard } from 'src/types/claudicaro'
+import type { CanvasCard } from 'src/types/icarus'
 
 const AUTO_CLOSE_DELAY_MS = 8000
 

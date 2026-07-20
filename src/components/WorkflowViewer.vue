@@ -473,7 +473,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import type { MessageRecord } from 'src/types/claudicaro'
+import type { MessageRecord } from 'src/types/icarus'
 
 // ── Props ────────────────────────────────────────────────────────────────────
 

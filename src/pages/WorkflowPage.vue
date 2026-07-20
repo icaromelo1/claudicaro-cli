@@ -62,7 +62,7 @@ import { useRouter } from 'vue-router'
 import WorkflowViewer from 'src/components/WorkflowViewer.vue'
 import WorkflowCanvas from 'src/components/canvas/WorkflowCanvas.vue'
 import { useSessions } from 'src/composables/useSessions'
-import type { SessionSummary } from 'src/types/claudicaro'
+import type { SessionSummary } from 'src/types/icarus'
 
 const router = useRouter()
 const { sessions, currentSessionId, loadSessions, selectSession } = useSessions()

@@ -243,7 +243,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import type { AppSettings } from 'src/types/claudicaro'
+import type { AppSettings } from 'src/types/icarus'
 
 // ─── Default settings (mirror do electron-side) ───────────────────────────
 const DEFAULT_SETTINGS: AppSettings = {

@@ -171,7 +171,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
-import type { SessionSummary } from 'src/types/claudicaro'
+import type { SessionSummary } from 'src/types/icarus'
 import SessionRow from './SessionRow.vue'
 import UserProfileModal from './UserProfileModal.vue'
 

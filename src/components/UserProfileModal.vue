@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import type { GoogleUser } from 'src/types/claudicaro'
+import type { GoogleUser } from 'src/types/icarus'
 
 const emit = defineEmits<{ close: [] }>()
 const router = useRouter()

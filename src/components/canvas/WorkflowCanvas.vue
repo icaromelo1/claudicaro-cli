@@ -73,7 +73,7 @@ import TerminalCard from './TerminalCard.vue'
 import TaskCard from './TaskCard.vue'
 import PeerCard from './PeerCard.vue'
 import CanvasToolbar from './CanvasToolbar.vue'
-import type { CanvasCard, CanvasLink, PeerTurnOrder } from 'src/types/claudicaro'
+import type { CanvasCard, CanvasLink, PeerTurnOrder } from 'src/types/icarus'
 
 const props = defineProps<{ sessionId?: string | null }>()
 

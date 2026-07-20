@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import type { SessionSummary, SessionGroup } from 'src/types/claudicaro'
+import type { SessionSummary, SessionGroup } from 'src/types/icarus'
 
 const props = defineProps<{
   session: SessionSummary

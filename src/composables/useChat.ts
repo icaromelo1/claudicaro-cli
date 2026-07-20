@@ -1,5 +1,5 @@
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import type { MessageRecord, DispatchResult } from 'src/types/claudicaro'
+import type { MessageRecord, DispatchResult } from 'src/types/icarus'
 import { useSessions } from './useSessions'
 
 export function useChat(scrollToBottom?: () => void) {

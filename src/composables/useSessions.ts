@@ -1,5 +1,5 @@
 import { shallowRef, ref } from 'vue'
-import type { SessionSummary, SessionGroup, OrchestratorConfig } from 'src/types/claudicaro'
+import type { SessionSummary, SessionGroup, OrchestratorConfig } from 'src/types/icarus'
 
 const sessions = shallowRef<SessionSummary[]>([])
 const groups = shallowRef<SessionGroup[]>([])

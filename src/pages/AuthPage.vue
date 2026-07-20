@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { AuthState } from 'src/types/claudicaro'
+import type { AuthState } from 'src/types/icarus'
 
 const router = useRouter()
 const authState = ref<AuthState | null>(null)
