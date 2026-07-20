@@ -147,7 +147,7 @@ async function onSend(payload: { content: string; mode: string }) {
 
 async function openDir() {
   if (currentSessionId.value) {
-    await window.claudicaro.session.openDir(currentSessionId.value)
+    await window.icarus.session.openDir(currentSessionId.value)
   }
 }
 

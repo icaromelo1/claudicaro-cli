@@ -763,7 +763,7 @@ function cliBadgeBg(cli: string): string {
 async function loadChatHistory() {
   if (!props.sessionId) return
   try {
-    const history = await window.claudicaro.session.history(props.sessionId)
+    const history = await window.icarus.session.history(props.sessionId)
     // last 5 messages
     chatMessages.value = history.slice(-5)
     await nextTick()
@@ -794,7 +794,7 @@ async function sendChatMessage() {
   chatMessagesEl.value?.scrollTo({ top: chatMessagesEl.value.scrollHeight, behavior: 'smooth' })
 
   try {
-    const result = await window.claudicaro.dispatch(content, props.sessionId)
+    const result = await window.icarus.dispatch(content, props.sessionId)
     chatMessages.value.push({
       id: (Date.now() + 1).toString(),
       sessionId: props.sessionId,

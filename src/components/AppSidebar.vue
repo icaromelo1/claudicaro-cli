@@ -194,7 +194,7 @@ watch([sessions, searchQuery], ([newSessions, q]) => {
     return
   }
   debounceTimer = setTimeout(async () => {
-    filteredSessions.value = await window.claudicaro.session.search(q)
+    filteredSessions.value = await window.icarus.session.search(q)
   }, 300)
 }, { immediate: true })
 

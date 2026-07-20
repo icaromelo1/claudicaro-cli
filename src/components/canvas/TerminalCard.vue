@@ -48,16 +48,16 @@ onMounted(() => {
   fitAddon.fit()
 
   terminal.onData((data) => {
-    void window.claudicaro.pty.write(props.card.id, data)
+    void window.icarus.pty.write(props.card.id, data)
   })
 
-  unsubscribeData = window.claudicaro.pty.onData((cardId, chunk) => {
+  unsubscribeData = window.icarus.pty.onData((cardId, chunk) => {
     if (cardId === props.card.id) terminal?.write(chunk)
   })
 
   resizeObserver = new ResizeObserver(() => {
     fitAddon?.fit()
-    if (terminal) void window.claudicaro.pty.resize(props.card.id, terminal.cols, terminal.rows)
+    if (terminal) void window.icarus.pty.resize(props.card.id, terminal.cols, terminal.rows)
   })
   resizeObserver.observe(termContainer.value)
 })

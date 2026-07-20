@@ -76,7 +76,7 @@ const loading = ref(false)
 const errorMsg = ref<string | null>(null)
 
 onMounted(async () => {
-  authState.value = await window.claudicaro.auth.getState()
+  authState.value = await window.icarus.auth.getState()
   if (authState.value?.user) {
     void router.push('/')
   }
@@ -86,8 +86,8 @@ async function handleSignIn() {
   loading.value = true
   errorMsg.value = null
   try {
-    await window.claudicaro.auth.signIn()
-    authState.value = await window.claudicaro.auth.getState()
+    await window.icarus.auth.signIn()
+    authState.value = await window.icarus.auth.getState()
     void router.push('/')
   } catch (err) {
     errorMsg.value = err instanceof Error ? err.message : 'Falha na autenticação'
@@ -97,8 +97,8 @@ async function handleSignIn() {
 }
 
 async function handleSignOut() {
-  await window.claudicaro.auth.signOut()
-  authState.value = await window.claudicaro.auth.getState()
+  await window.icarus.auth.signOut()
+  authState.value = await window.icarus.auth.getState()
 }
 </script>
 

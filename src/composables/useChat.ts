@@ -28,7 +28,7 @@ export function useChat(scrollToBottom?: () => void) {
   let unsubscribeToken: (() => void) | null = null
 
   async function loadHistory(sessionId: string) {
-    messages.value = await window.claudicaro.session.history(sessionId)
+    messages.value = await window.icarus.session.history(sessionId)
   }
 
   watch(currentSessionId, async (id) => {
@@ -40,7 +40,7 @@ export function useChat(scrollToBottom?: () => void) {
   })
 
   onMounted(() => {
-    unsubscribeToken = window.claudicaro.onToken((chunk, sessionId) => {
+    unsubscribeToken = window.icarus.onToken((chunk, sessionId) => {
       if (sessionId === currentSessionId.value) {
         streamingContent.value += chunk
         nextTick(() => scrollToBottom?.())
@@ -76,7 +76,7 @@ export function useChat(scrollToBottom?: () => void) {
     scrollToBottom?.()
 
     try {
-      const result: DispatchResult = await window.claudicaro.dispatch(content, currentSessionId.value, forceCli)
+      const result: DispatchResult = await window.icarus.dispatch(content, currentSessionId.value, forceCli)
 
       loadingCli.value = result.cli
 
@@ -117,7 +117,7 @@ export function useChat(scrollToBottom?: () => void) {
 
   function cancelDispatch() {
     if (currentSessionId.value) {
-      void window.claudicaro.cancel(currentSessionId.value)
+      void window.icarus.cancel(currentSessionId.value)
     }
   }
 

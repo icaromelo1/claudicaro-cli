@@ -7,16 +7,16 @@ const currentSessionId = ref<string | null>(null)
 
 export function useSessions() {
   async function loadSessions() {
-    sessions.value = await window.claudicaro.session.list()
+    sessions.value = await window.icarus.session.list()
   }
 
   async function loadGroups() {
-    groups.value = await window.claudicaro.group.list()
+    groups.value = await window.icarus.group.list()
   }
 
   async function createSession(opts: { title?: string; config?: OrchestratorConfig }) {
     const orchestratorConfig = opts.config ? JSON.stringify(opts.config) : undefined
-    const { id, title } = await window.claudicaro.session.create(opts.title, orchestratorConfig)
+    const { id, title } = await window.icarus.session.create(opts.title, orchestratorConfig)
     const newSession: SessionSummary = {
       id,
       title,
@@ -38,7 +38,7 @@ export function useSessions() {
   }
 
   async function deleteSession(id: string) {
-    await window.claudicaro.session.delete(id)
+    await window.icarus.session.delete(id)
     sessions.value = sessions.value.filter((s) => s.id !== id)
     if (currentSessionId.value === id) {
       currentSessionId.value = sessions.value[0]?.id ?? null
@@ -46,31 +46,31 @@ export function useSessions() {
   }
 
   async function renameSession(id: string, title: string) {
-    await window.claudicaro.session.rename(id, title)
+    await window.icarus.session.rename(id, title)
     sessions.value = sessions.value.map((s) =>
       s.id === id ? { ...s, title } : s
     )
   }
 
   async function pinSession(id: string, pinned: boolean) {
-    await window.claudicaro.session.pin(id, pinned)
+    await window.icarus.session.pin(id, pinned)
     sessions.value = sessions.value.map((s) =>
       s.id === id ? { ...s, pinnedAt: pinned ? new Date() : undefined } : s
     )
   }
 
   async function searchSessions(query: string): Promise<SessionSummary[]> {
-    return window.claudicaro.session.search(query)
+    return window.icarus.session.search(query)
   }
 
   async function createGroup(name: string, color?: string): Promise<SessionGroup> {
-    const group = await window.claudicaro.group.create(name, color)
+    const group = await window.icarus.group.create(name, color)
     groups.value = [...groups.value, group]
     return group
   }
 
   async function moveToGroup(sessionId: string, groupId: string | null) {
-    await window.claudicaro.session.moveGroup(sessionId, groupId)
+    await window.icarus.session.moveGroup(sessionId, groupId)
     sessions.value = sessions.value.map((s) =>
       s.id === sessionId ? { ...s, groupId: groupId ?? undefined } : s
     )

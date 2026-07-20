@@ -138,8 +138,8 @@ async function refresh() {
   refreshing.value = true
   try {
     const [health, entries] = await Promise.all([
-      window.claudicaro.health(),
-      window.claudicaro.logs(100),
+      window.icarus.health(),
+      window.icarus.logs(100),
     ])
     healthData.value = health as Record<string, HealthRecord>
     logs.value = entries

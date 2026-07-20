@@ -153,7 +153,7 @@ async function createGroupAndMove() {
   closeMenu()
   const name = window.prompt('Nome do novo grupo:')
   if (!name?.trim()) return
-  const group = await window.claudicaro.group.create(name.trim())
+  const group = await window.icarus.group.create(name.trim())
   emit('move-group', props.session.id, group.id)
 }
 

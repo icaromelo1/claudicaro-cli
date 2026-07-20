@@ -27,10 +27,10 @@ let unsubscribeDone: (() => void) | undefined
 let autoCloseTimer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
-  unsubscribeToken = window.claudicaro.canvas.onTaskToken((cardId, chunk) => {
+  unsubscribeToken = window.icarus.canvas.onTaskToken((cardId, chunk) => {
     if (cardId === props.card.id) content.value += chunk
   })
-  unsubscribeDone = window.claudicaro.canvas.onTaskDone((cardId, finalContent) => {
+  unsubscribeDone = window.icarus.canvas.onTaskDone((cardId, finalContent) => {
     if (cardId !== props.card.id) return
     content.value = finalContent
     done.value = true

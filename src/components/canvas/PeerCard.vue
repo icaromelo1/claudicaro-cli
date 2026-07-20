@@ -27,8 +27,8 @@ const turns = ref<PeerTurn[]>([])
 let unsubscribe: (() => void) | undefined
 
 onMounted(async () => {
-  turns.value = await window.claudicaro.canvas.listPeerTurns(props.card.id)
-  unsubscribe = window.claudicaro.canvas.onPeerTurn((cardId, round, content) => {
+  turns.value = await window.icarus.canvas.listPeerTurns(props.card.id)
+  unsubscribe = window.icarus.canvas.onPeerTurn((cardId, round, content) => {
     if (cardId !== props.card.id) return
     turns.value.push({ id: `live-${round}`, groupId: '', cardId, round, content, createdAt: new Date() })
   })

@@ -105,17 +105,17 @@ const autoSessionId = ref<string | null>(null)
 async function resolveSessionId(): Promise<string> {
   if (props.sessionId) return props.sessionId
   if (autoSessionId.value) return autoSessionId.value
-  const session = await window.claudicaro.session.create('Canvas')
+  const session = await window.icarus.session.create('Canvas')
   autoSessionId.value = session.id
   return session.id
 }
 
 onMounted(async () => {
   if (props.sessionId) {
-    cards.value = await window.claudicaro.canvas.listCards(props.sessionId)
-    links.value = await window.claudicaro.canvas.listLinks(props.sessionId)
+    cards.value = await window.icarus.canvas.listCards(props.sessionId)
+    links.value = await window.icarus.canvas.listLinks(props.sessionId)
 
-    const peerGroups = await window.claudicaro.canvas.listPeerGroups(props.sessionId)
+    const peerGroups = await window.icarus.canvas.listPeerGroups(props.sessionId)
     const labels = new Map<string, string>()
     const groupCardIds = new Map<string, string[]>()
     for (const { group, members } of peerGroups) {
@@ -203,7 +203,7 @@ function onMouseMove(e: MouseEvent) {
 
 function onMouseUp() {
   if (draggingCard.value) {
-    void window.claudicaro.canvas.moveCard(draggingCard.value.id, draggingCard.value.x, draggingCard.value.y)
+    void window.icarus.canvas.moveCard(draggingCard.value.id, draggingCard.value.x, draggingCard.value.y)
     draggingCard.value = null
   }
   panningBackground.value = false
@@ -217,14 +217,14 @@ function viewportCenter(): { x: number; y: number } {
 async function onCreateCard(cli: string) {
   const sessionId = await resolveSessionId()
   const center = viewportCenter()
-  const card = await window.claudicaro.canvas.createCard(sessionId, cli, center.x - 240, center.y - 180)
+  const card = await window.icarus.canvas.createCard(sessionId, cli, center.x - 240, center.y - 180)
   cards.value.push(card)
 }
 
 async function onCreateTask(cli: string, task: string) {
   const sessionId = await resolveSessionId()
   const center = viewportCenter()
-  const card = await window.claudicaro.canvas.createTask(sessionId, cli, center.x - 240, center.y - 180, task)
+  const card = await window.icarus.canvas.createTask(sessionId, cli, center.x - 240, center.y - 180, task)
   cards.value.push(card)
 }
 
@@ -242,7 +242,7 @@ async function onCreatePeer(
     y: center.y - 180,
   }))
 
-  const { group, cards: newCards } = await window.claudicaro.canvas.createPeerGroup(
+  const { group, cards: newCards } = await window.icarus.canvas.createPeerGroup(
     sessionId, members, turnOrder, maxRounds, openingPrompt, positions,
   )
 
@@ -275,13 +275,13 @@ async function onBackgroundClick(e: MouseEvent) {
 
   const sessionId = await resolveSessionId()
   const point = screenToWorld(e.clientX, e.clientY)
-  const { card, link } = await window.claudicaro.canvas.createLinkedCard(sessionId, parentId, parent.cli, point.x, point.y)
+  const { card, link } = await window.icarus.canvas.createLinkedCard(sessionId, parentId, parent.cli, point.x, point.y)
   cards.value.push(card)
   links.value.push(link)
 }
 
 async function onCardClose(card: CanvasCard) {
-  await window.claudicaro.canvas.deleteCard(card.id)
+  await window.icarus.canvas.deleteCard(card.id)
   cards.value = cards.value.filter((c) => c.id !== card.id)
   links.value = links.value.filter((l) => l.fromCardId !== card.id && l.toCardId !== card.id)
 }

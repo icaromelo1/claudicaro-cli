@@ -106,8 +106,8 @@ const CLI_COLORS: Record<string, string> = {
 onMounted(async () => {
   try {
     const [sessions, health] = await Promise.all([
-      window.claudicaro.session.list(),
-      window.claudicaro.health(),
+      window.icarus.session.list(),
+      window.icarus.health(),
     ])
     allSessions.value = sessions
 
@@ -129,7 +129,7 @@ watch(searchQuery, async (q) => {
     return
   }
   debounceTimer = setTimeout(async () => {
-    const results = await window.claudicaro.session.search(q)
+    const results = await window.icarus.session.search(q)
     searchResults.value = results
   }, 300)
 })

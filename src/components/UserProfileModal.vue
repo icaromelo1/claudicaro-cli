@@ -39,7 +39,7 @@ const user = ref<GoogleUser | null>(null)
 
 onMounted(async () => {
   try {
-    const state = await window.claudicaro.auth.getState()
+    const state = await window.icarus.auth.getState()
     user.value = state.user
   } catch {
     // auth not available
@@ -60,7 +60,7 @@ const initial = computed(() => {
 })
 
 async function handleSignOut() {
-  await window.claudicaro.auth.signOut()
+  await window.icarus.auth.signOut()
   emit('close')
   await router.push('/auth')
 }

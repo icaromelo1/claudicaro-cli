@@ -342,7 +342,7 @@ async function save() {
   saveError.value = false
   try {
     const plain = JSON.parse(JSON.stringify(settings)) as AppSettings
-    const result = await window.claudicaro.settings.save(plain) as { success: boolean; error?: string } | void
+    const result = await window.icarus.settings.save(plain) as { success: boolean; error?: string } | void
     if (result && !result.success) throw new Error(result.error ?? 'Falha desconhecida')
     savedFeedback.value = true
     setTimeout(() => { savedFeedback.value = false }, 2000)
@@ -359,7 +359,7 @@ function resetDefaults() {
 // ─── Load on mount ───────────────────────────────────────────────────────
 onMounted(async () => {
   try {
-    const loaded = await window.claudicaro.settings.get()
+    const loaded = await window.icarus.settings.get()
     applySettings(loaded)
   } catch {
     // Keep defaults
