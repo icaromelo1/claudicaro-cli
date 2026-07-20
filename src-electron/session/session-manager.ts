@@ -94,17 +94,17 @@ export class SessionManager extends EventEmitter {
     }))
   }
 
-  async saveCliSession(claudicaroSessionId: string, cli: string, cliSessionId: string): Promise<void> {
+  async saveCliSession(icarusSessionId: string, cli: string, cliSessionId: string): Promise<void> {
     await prisma.cliSession.upsert({
-      where: { claudicaroSessionId_cli: { claudicaroSessionId, cli } },
-      create: { claudicaroSessionId, cli, cliSessionId },
+      where: { icarusSessionId_cli: { icarusSessionId, cli } },
+      create: { icarusSessionId, cli, cliSessionId },
       update: { cliSessionId, updatedAt: new Date() },
     })
   }
 
-  async getCliSession(claudicaroSessionId: string, cli: string): Promise<string | null> {
+  async getCliSession(icarusSessionId: string, cli: string): Promise<string | null> {
     const cs = await prisma.cliSession.findUnique({
-      where: { claudicaroSessionId_cli: { claudicaroSessionId, cli } }
+      where: { icarusSessionId_cli: { icarusSessionId, cli } }
     })
     return cs?.cliSessionId ?? null
   }
