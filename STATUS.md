@@ -37,12 +37,13 @@
 
 ---
 
-## Escritório multiagente (spec aprovado, implementação fora deste repo)
+## Escritório multiagente (fases 1–6 ✅ implementadas fora deste repo, fase 7 pendente)
 
 Spec: `docs/design/2026-08-02-escritorio-multiagente.md`
+Código: `pessoal/escritorio/` (repo próprio, 103 testes, instalado e em uso)
 
-Camada de comunicação **peer-to-peer entre sessões Claude Code** — servidor MCP standalone
-(`~/projetos/pessoal/escritorio/`), fora do Electron. Sessões e especialistas viram pessoas
+Camada de comunicação **peer-to-peer entre sessões Claude Code** — servidor MCP standalone,
+fora do Electron. Sessões e especialistas viram pessoas
 endereçáveis por nome, conversando por `ask()`/`dm()` dentro de threads, com quadro branco
 compartilhado e `claim()` de recursos.
 

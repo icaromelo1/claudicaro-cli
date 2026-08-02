@@ -164,7 +164,7 @@ Sem transcrição. Se crescer demais, o próprio colega compacta na próxima des
 
 ## Decomposição para implementação
 
-Implementação em repo próprio (`~/projetos/pessoal/escritorio/`). Este spec mora no repo do Icarus porque o Icarus é o consumidor da fase 7 e é onde a série de specs de canvas/pares já vive.
+Implementação em repo próprio (`pessoal/escritorio/`, no workspace do SSD). Este spec mora no repo do Icarus porque o Icarus é o consumidor da fase 7 e é onde a série de specs de canvas/pares já vive.
 
 1. **Correio base** — projeto Node standalone, schema SQLite (Thread, Mensagem, Board, Claim, Colega), sem MCP ainda.
 2. **Roster + tiers** — parser do `roster.yaml`, resolução de tier → flags do CLI. Puro, testável isolado.
@@ -175,6 +175,28 @@ Implementação em repo próprio (`~/projetos/pessoal/escritorio/`). Este spec m
 7. **Icarus como cliente** — cards do canvas entram como participantes; arestas passam a ser desenhadas pelo tráfego real, não pela topologia declarada. `PeerGroup` vira caso particular de thread.
 
 Fases 1–2 são pré-requisito de tudo. 3–4 são o núcleo utilizável. 5 é o que torna assíncrono real. 6 é o que separa colega de subagente. 7 é o Icarus herdando.
+
+## Estado: fases 1–6 implementadas (2026-08-02)
+
+Repo `pessoal/escritorio/`, 103 testes verdes, instalado e verificado em sessão real
+(hook entregando, MCP respondendo, colega acordado com `claude -p`, caderno destilado).
+
+O que a implementação mudou em relação a este desenho:
+
+- **Registro do MCP.** `settings.json` **não** registra servidor MCP no Claude Code — quem faz
+  isso é `claude mcp add --scope user` (grava em `~/.claude.json`). O `mcpServers` que este spec
+  sugeria no `.mcp.json` só vale para escopo de projeto. O instalador faz os dois caminhos certos.
+- **Identidade sem configuração.** Uma sessão interativa comum não tem `ESCRITORIO_ID` no env, e
+  exigir configuração por sessão matava a usabilidade. Agora a identidade cai para
+  `usuário@pasta` — estável por projeto e endereçável por outra sessão.
+- **Responder um `ask` como sessão viva.** Faltava no desenho: `dm` na thread de uma pergunta
+  pendente é promovido a `resposta` e destrava quem estava bloqueado. Sem isso, `ask` numa sessão
+  viva sempre estourava o timeout.
+- **`board_read` com `*`** faz listagem por prefixo, evitando uma sétima tool só pra isso.
+- **Expansão de `${VAR}` nos caminhos do roster**, para o mesmo arquivo servir Mac e VM.
+- **`fechar_thread` virou tool própria** (o desenho tinha 6 tools; são 7 na prática).
+
+Falta a fase 7 (Icarus como cliente).
 
 ## Fora de escopo (YAGNI, v1)
 
