@@ -34,3 +34,25 @@
 
 ## Wave 8 ✅ concluída
 - [x] T16: Operações e Manutenção — done (BackupManager, LogRotation, UpdateChecker, docs/playbooks/)
+
+---
+
+## Escritório multiagente (spec aprovado, implementação fora deste repo)
+
+Spec: `docs/design/2026-08-02-escritorio-multiagente.md`
+
+Camada de comunicação **peer-to-peer entre sessões Claude Code** — servidor MCP standalone
+(`~/projetos/pessoal/escritorio/`), fora do Electron. Sessões e especialistas viram pessoas
+endereçáveis por nome, conversando por `ask()`/`dm()` dentro de threads, com quadro branco
+compartilhado e `claim()` de recursos.
+
+O que isso significa pra este repo:
+
+- O Icarus **não** é o dono do escritório — entra como cliente na fase 7 do spec.
+- `PeerGroup`/`PeerGroupMember`/`PeerTurn` viram **caso particular de thread** (rodízio fixo
+  por índice em `PeerGroupManager.runRounds()` é substituído por agentes escolhendo destinatário).
+  Até a fase 7, continuam funcionando como estão — não mexer.
+- `LockEntry`/`AuditLog` foram a prova de conceito do `claim()`; o correio copia o formato num
+  banco próprio. Convergir os dois é trabalho da fase 7.
+- Na fase 7 o `WorkflowCanvas` passa a desenhar aresta por **tráfego real** de mensagem, em vez
+  da topologia declarada.
