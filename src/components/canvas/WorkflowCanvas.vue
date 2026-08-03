@@ -49,6 +49,26 @@
       </template>
     </div>
 
+    <svg v-if="trafegoDisponivel" class="cc-canvas-traffic">
+      <path
+        v-for="aresta in trafegoArestas"
+        :key="aresta.chave"
+        :d="trafegoEdgePath(aresta)"
+        class="cc-canvas-traffic-path"
+      />
+    </svg>
+
+    <div v-if="trafegoDisponivel" class="cc-canvas-ghosts">
+      <div
+        v-for="fantasma in trafegoFantasmas"
+        :key="fantasma.nome"
+        class="cc-canvas-ghost"
+        :style="ghostStyle(fantasma)"
+      >
+        {{ fantasma.nome }}
+      </div>
+    </div>
+
     <div v-if="linkingFromCardId" class="cc-canvas-linking-hint">
       Clique num espaço vazio pra criar o card filho — Esc pra cancelar
     </div>
@@ -74,6 +94,18 @@ import TaskCard from './TaskCard.vue'
 import PeerCard from './PeerCard.vue'
 import CanvasToolbar from './CanvasToolbar.vue'
 import type { CanvasCard, CanvasLink, PeerTurnOrder } from 'src/types/icarus'
+import {
+  mapearIdentidadesDeCards,
+  resolverParticipante,
+  posicaoNaBorda,
+  estadoTrafegoInicial,
+  aplicarEvento,
+  expirarEstadoTrafego,
+  type EventoEscritorio,
+  type ArestaTrafego,
+  type FantasmaTrafego,
+  type Ponto,
+} from './trafego'
 
 const props = defineProps<{ sessionId?: string | null }>()
 
@@ -97,6 +129,21 @@ let dragStartCardPos = { x: 0, y: 0 }
 const panningBackground = ref(false)
 let panStartScreen = { x: 0, y: 0 }
 let panStart = { x: 0, y: 0 }
+
+const trafegoDisponivel = ref(false)
+const trafegoEstado = ref(estadoTrafegoInicial())
+const viewportSize = ref({ width: 800, height: 600 })
+let trafegoUnsubscribe: (() => void) | null = null
+let trafegoIntervalId: ReturnType<typeof setInterval> | null = null
+
+const TRAFEGO_TICK_MS = 500
+
+const mapaIdentidades = computed(() =>
+  mapearIdentidadesDeCards(cards.value.map((c) => ({ id: c.id, label: c.label }))),
+)
+
+const trafegoArestas = computed(() => Array.from(trafegoEstado.value.arestas.values()))
+const trafegoFantasmas = computed(() => Array.from(trafegoEstado.value.fantasmas.values()))
 
 // Quando o canvas é aberto sem uma conversa associada (aba standalone), uma
 // conversa nova é criada sob demanda na primeira ação e reutilizada depois.
@@ -127,7 +174,30 @@ onMounted(async () => {
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('mouseup', onMouseUp)
   window.addEventListener('keydown', onKeyDown)
+
+  trafegoDisponivel.value = await window.icarus.escritorio.disponivel()
+  if (trafegoDisponivel.value) {
+    atualizarViewportSize()
+    trafegoUnsubscribe = window.icarus.escritorio.onEvento((evento) => {
+      trafegoEstado.value = aplicarEvento(
+        trafegoEstado.value,
+        evento as EventoEscritorio,
+        mapaIdentidades.value,
+        Date.now(),
+      )
+    })
+    trafegoIntervalId = setInterval(() => {
+      trafegoEstado.value = expirarEstadoTrafego(trafegoEstado.value, Date.now())
+      atualizarViewportSize()
+    }, TRAFEGO_TICK_MS)
+  }
 })
+
+function atualizarViewportSize() {
+  const rect = viewport.value?.getBoundingClientRect()
+  if (!rect) return
+  viewportSize.value = { width: rect.width, height: rect.height }
+}
 
 const peerGroupBounds = computed(() => {
   const PADDING = 24
@@ -148,6 +218,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onMouseMove)
   window.removeEventListener('mouseup', onMouseUp)
   window.removeEventListener('keydown', onKeyDown)
+  trafegoUnsubscribe?.()
+  if (trafegoIntervalId) clearInterval(trafegoIntervalId)
 })
 
 function onKeyDown(e: KeyboardEvent) {
@@ -286,6 +358,32 @@ async function onCardClose(card: CanvasCard) {
   links.value = links.value.filter((l) => l.fromCardId !== card.id && l.toCardId !== card.id)
 }
 
+function worldToScreen(point: Ponto): Ponto {
+  return { x: point.x * zoom.value + pan.value.x, y: point.y * zoom.value + pan.value.y }
+}
+
+function participantePonto(identidade: string): Ponto {
+  const resolvido = resolverParticipante(identidade, mapaIdentidades.value)
+  if (resolvido.tipo === 'card') {
+    const card = cards.value.find((c) => c.id === resolvido.cardId)
+    if (card) {
+      return worldToScreen({ x: card.x + card.width / 2, y: card.y + card.height / 2 })
+    }
+  }
+  return posicaoNaBorda(resolvido.nome, viewportSize.value.width, viewportSize.value.height)
+}
+
+function trafegoEdgePath(aresta: ArestaTrafego): string {
+  const p1 = participantePonto(aresta.de)
+  const p2 = participantePonto(aresta.para)
+  return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`
+}
+
+function ghostStyle(fantasma: FantasmaTrafego): Record<string, string> {
+  const pos = posicaoNaBorda(fantasma.nome, viewportSize.value.width, viewportSize.value.height)
+  return { left: `${pos.x}px`, top: `${pos.y}px` }
+}
+
 function linkPath(link: CanvasLink): string {
   const from = cards.value.find((c) => c.id === link.fromCardId)
   const to = cards.value.find((c) => c.id === link.toCardId)
@@ -351,6 +449,50 @@ function linkPath(link: CanvasLink): string {
   stroke-width: 1;
   stroke-opacity: 0.4;
   rx: 16;
+}
+
+.cc-canvas-traffic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.cc-canvas-traffic-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  opacity: 0.85;
+  animation: cc-traffic-flow 0.6s linear infinite;
+}
+
+@keyframes cc-traffic-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+.cc-canvas-ghosts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.cc-canvas-ghost {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-full);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
 }
 
 .cc-canvas-linking-hint {

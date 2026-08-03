@@ -110,6 +110,12 @@ export interface UpdateStatus {
   hasUpdate: boolean
 }
 
+export interface EstadoEscritorio {
+  presentes: string[]
+  threadsAbertas: { id: string; assunto: string; dono: string; hops: number }[]
+  claims: { recurso: string; dono: string; intencao: string }[]
+}
+
 export type CardEngine = 'pty' | 'headless-task' | 'headless-peer'
 export type PeerTurnOrder = 'round-robin' | 'roundtable'
 export type PeerGroupStatus = 'running' | 'stopped' | 'done'
@@ -118,6 +124,7 @@ export interface CanvasCard {
   id: string
   sessionId: string
   cli: string
+  label: string | null
   engine: CardEngine
   x: number
   y: number
@@ -231,6 +238,11 @@ declare global {
         resize: (cardId: string, cols: number, rows: number) => Promise<null>
         kill: (cardId: string) => Promise<null>
         onData: (cb: (cardId: string, chunk: string) => void) => () => void
+      }
+      escritorio: {
+        disponivel: () => Promise<boolean>
+        estado: () => Promise<unknown | null>
+        onEvento: (cb: (evento: unknown) => void) => () => void
       }
     }
   }
