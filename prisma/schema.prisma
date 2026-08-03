@@ -101,6 +101,7 @@ model CanvasCard {
   sessionId String
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   cli       String
+  label     String?
   engine    String   @default("pty") // "pty" | "headless-task" | "headless-peer"
   x         Float
   y         Float
