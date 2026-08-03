@@ -8,6 +8,7 @@ import {
   mapearIdentidades,
   proximaOrdem,
   envComIdentidade,
+  opcoesDeSpawnDoCard,
 } from '../src-electron/escritorio/identidade.js'
 
 describe('rotuloDoCard', () => {
@@ -54,6 +55,29 @@ describe('mapearIdentidades', () => {
     expect(mapa.get('icarus:claude-1')).toBe('abc')
     expect(mapa.get('icarus:agy-1')).toBe('ghi')
     expect(mapa.has('icarus:def')).toBe(false)
+  })
+})
+
+describe('opcoesDeSpawnDoCard', () => {
+  it('card com label vira identidade e usa o workingDir da sessão', () => {
+    expect(opcoesDeSpawnDoCard({ label: 'claude-2' }, '/repo/dsg/v1')).toEqual({
+      escritorioId: 'icarus:claude-2',
+      cwd: '/repo/dsg/v1',
+    })
+  })
+
+  it('sessão sem workingDir não força cwd', () => {
+    expect(opcoesDeSpawnDoCard({ label: 'claude-1' }, null)).toEqual({
+      escritorioId: 'icarus:claude-1',
+    })
+  })
+
+  it('card legado sem label não ganha identidade forjada', () => {
+    expect(opcoesDeSpawnDoCard({ label: null }, '/repo')).toEqual({ cwd: '/repo' })
+  })
+
+  it('sem label e sem workingDir devolve objeto vazio', () => {
+    expect(opcoesDeSpawnDoCard({})).toEqual({})
   })
 })
 

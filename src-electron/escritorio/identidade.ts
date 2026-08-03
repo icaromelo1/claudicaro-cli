@@ -51,6 +51,16 @@ export function mapearIdentidades(
   return mapa
 }
 
+export function opcoesDeSpawnDoCard(
+  card: { label?: string | null },
+  workingDir?: string | null,
+): { escritorioId?: string; cwd?: string } {
+  return {
+    ...(card.label ? { escritorioId: identidadeDoCard(card.label) } : {}),
+    ...(workingDir ? { cwd: workingDir } : {}),
+  }
+}
+
 export function proximaOrdem(cards: { cli: string; label?: string | null }[], cli: string): number {
   const prefixo = `${cli}-`
   let maior = 0

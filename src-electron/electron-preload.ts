@@ -129,6 +129,16 @@ const icarus = {
       return () => ipcRenderer.off('pty:data', handler)
     },
   },
+
+  escritorio: {
+    disponivel: (): Promise<boolean> => ipcRenderer.invoke('escritorio:disponivel'),
+    estado: (): Promise<unknown | null> => ipcRenderer.invoke('escritorio:estado'),
+    onEvento: (cb: (evento: unknown) => void): (() => void) => {
+      const handler = (_: unknown, evento: unknown) => cb(evento)
+      ipcRenderer.on('escritorio:evento', handler)
+      return () => ipcRenderer.off('escritorio:evento', handler)
+    },
+  },
 }
 
 contextBridge.exposeInMainWorld('icarus', icarus)

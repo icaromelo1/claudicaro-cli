@@ -1,4 +1,5 @@
 import { prisma } from '../../src/db/client.js'
+import { proximaOrdem, rotuloDoCard } from '../escritorio/identidade.js'
 
 export type CardEngine = 'pty' | 'headless-task' | 'headless-peer'
 export type PeerTurnOrder = 'round-robin' | 'roundtable'
@@ -8,6 +9,7 @@ export interface CanvasCardRecord {
   id: string
   sessionId: string
   cli: string
+  label: string | null
   engine: string
   x: number
   y: number
@@ -54,7 +56,9 @@ export interface PeerTurnRecord {
 
 export class CanvasManager {
   async createCard(sessionId: string, cli: string, x: number, y: number, engine: CardEngine = 'pty'): Promise<CanvasCardRecord> {
-    return prisma.canvasCard.create({ data: { sessionId, cli, x, y, engine, ptyAlive: engine === 'pty' } })
+    const existentes = await this.listCards(sessionId)
+    const label = rotuloDoCard(cli, proximaOrdem(existentes, cli))
+    return prisma.canvasCard.create({ data: { sessionId, cli, label, x, y, engine, ptyAlive: engine === 'pty' } })
   }
 
   async listCards(sessionId: string): Promise<CanvasCardRecord[]> {

@@ -10,6 +10,7 @@ import { googleAuth } from './auth/index.js'
 import { settingsStore } from './config/index.js'
 import { setupIpcHandlers } from './ipc/index.js'
 import { setupPtyHandlers } from './ipc/pty-handlers.js'
+import { setupEscritorioHandlers } from './ipc/escritorio-handlers.js'
 import { PtyManager } from './pty/pty-manager.js'
 import { CanvasManager } from './canvas/canvas-manager.js'
 
@@ -63,6 +64,8 @@ async function createWindow() {
   if (process.env.DEVTOOLS === '1') {
     mainWindow.webContents.openDevTools()
   }
+
+  setupEscritorioHandlers(mainWindow)
 
   mainWindow.on('closed', () => {
     mainWindow = undefined

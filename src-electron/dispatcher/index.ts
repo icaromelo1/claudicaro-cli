@@ -35,6 +35,7 @@ export class Dispatcher {
       contextMessages: req.contextMessages,
       onToken: req.onToken,
       abortSignal: req.abortSignal,
+      escritorioId: req.escritorioId,
     }
 
     try {

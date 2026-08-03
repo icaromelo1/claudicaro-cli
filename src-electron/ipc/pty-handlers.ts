@@ -5,9 +5,21 @@ import { buildHandoffContext } from '../canvas/handoff.js'
 import { PeerGroupManager, type PeerMemberInput } from '../canvas/peer-group-manager.js'
 import type { SettingsStore } from '../config/settings-store.js'
 import type { Dispatcher } from '../dispatcher/index.js'
+import { identidadeDoCard, opcoesDeSpawnDoCard } from '../escritorio/identidade.js'
+import { prisma } from '../../src/db/client.js'
 
 const SCROLLBACK_CHUNK_LIMIT = 200
 const scrollbackBuffers = new Map<string, string[]>()
+
+async function opcoesDoCard(
+  card: { label?: string | null },
+  sessionId: string,
+): Promise<{ escritorioId?: string; cwd?: string }> {
+  const sessao = (await prisma.session.findUnique({ where: { id: sessionId } })) as
+    | { workingDir?: string | null }
+    | null
+  return opcoesDeSpawnDoCard(card, sessao?.workingDir)
+}
 
 function trackScrollback(cardId: string, chunk: string): void {
   const chunks = scrollbackBuffers.get(cardId) ?? []
@@ -37,7 +49,10 @@ export function setupPtyHandlers(
   ipcMain.handle('canvas:card:create', async (event, { sessionId, cli, x, y }: { sessionId: string; cli: string; x: number; y: number }) => {
     const card = await canvasManager.createCard(sessionId, cli, x, y)
     const bypass = (await settingsStore.get()).defaultOrchestrator.permissionMode === 'bypass'
-    ptyManager.create(card.id, cli, { bypass })
+    ptyManager.create(card.id, cli, {
+      bypass,
+      ...(await opcoesDoCard(card, sessionId)),
+    })
     attachSession(card.id, event)
     return card
   })
@@ -60,6 +75,7 @@ export function setupPtyHandlers(
     const bypass = (await settingsStore.get()).defaultOrchestrator.permissionMode === 'bypass'
     ptyManager.create(childCard.id, childCli, {
       bypass,
+      ...(await opcoesDoCard(childCard, sessionId)),
       ...(handoff.resumeSessionId ? { resumeSessionId: handoff.resumeSessionId } : {}),
       ...(handoff.initialInput ? { initialInput: handoff.initialInput } : {}),
     })
@@ -107,6 +123,7 @@ export function setupPtyHandlers(
       task,
       sessionId,
       forceCli: cli,
+      ...(card.label ? { escritorioId: identidadeDoCard(card.label) } : {}),
       onToken: (chunk) => event.sender.send('task:token', { cardId: card.id, chunk }),
     }).then((result) => {
       event.sender.send('task:done', { cardId: card.id, content: result.content })

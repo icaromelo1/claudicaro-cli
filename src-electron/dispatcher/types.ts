@@ -60,6 +60,7 @@ export interface DispatchRequest {
   contextMessages?: Array<{ role: 'user' | 'assistant'; content: string }>
   onToken?: (chunk: string) => void
   abortSignal?: AbortSignal
+  escritorioId?: string
 }
 
 export interface DispatchResult extends AdapterInvokeResult {
