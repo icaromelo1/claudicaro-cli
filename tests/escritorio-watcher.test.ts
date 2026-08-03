@@ -104,7 +104,7 @@ describe('EscritorioWatcher.verificarAgora', () => {
 
     const primeira = watcher.verificarAgora()
     expect(primeira.length).toBe(1)
-    expect(primeira[0].tipo).toBe('thread-aberta')
+    expect(primeira[0]!.tipo).toBe('thread-aberta')
 
     const segunda = watcher.verificarAgora()
     expect(segunda).toEqual([])
@@ -145,7 +145,7 @@ describe('EscritorioWatcher.iniciar / parar', () => {
     vi.advanceTimersByTime(100)
 
     expect(recebidos.length).toBe(1)
-    expect(recebidos[0].threadId).toBe('t1')
+    expect(recebidos[0]!.threadId).toBe('t1')
 
     watcher.parar()
   })

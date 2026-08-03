@@ -79,8 +79,9 @@ export class EscritorioWatcher {
 
     try {
       const eventos = coletarEventos(this.db, this.desde)
-      if (eventos.length > 0) {
-        this.desde = eventos[eventos.length - 1].quando
+      const ultimo = eventos[eventos.length - 1]
+      if (ultimo) {
+        this.desde = ultimo.quando
       }
       return eventos
     } catch {

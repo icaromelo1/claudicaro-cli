@@ -76,7 +76,7 @@ describe('resumir', () => {
 })
 
 describe('coletarEventos', () => {
-  let db: Database.Database
+  let db: DatabaseSync
 
   beforeEach(() => {
     db = abrirDbTeste()
@@ -118,7 +118,7 @@ describe('coletarEventos', () => {
 
     expect(eventos.map((e) => e.tipo)).toEqual(['claim', 'thread-aberta', 'quadro'])
     for (let i = 1; i < eventos.length; i++) {
-      expect(eventos[i].quando >= eventos[i - 1].quando).toBe(true)
+      expect(eventos[i]!.quando >= eventos[i - 1]!.quando).toBe(true)
     }
   })
 
@@ -130,7 +130,7 @@ describe('coletarEventos', () => {
     const primeira = coletarEventos(db, '2026-08-01T00:00:00.000Z')
     expect(primeira.length).toBe(1)
 
-    const ultimaData = primeira[primeira.length - 1].quando
+    const ultimaData = primeira[primeira.length - 1]!.quando
     const segunda = coletarEventos(db, ultimaData)
     expect(segunda).toEqual([])
   })
