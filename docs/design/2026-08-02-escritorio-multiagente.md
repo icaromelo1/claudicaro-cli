@@ -59,9 +59,9 @@ especialista-deposito:
 
 | tier | poder | como é imposto |
 |---|---|---|
-| `advisor` | lê repo, comandos read-only, consulta API | `--disallowedTools Edit Write NotebookEdit` + `--allowedTools "Bash(git log:*)" "Bash(grep:*)" ...` |
+| `advisor` | lê repo, comandos read-only, consulta API | **allowlist** `--allowedTools` (leitura + Bash read-only + tools do escritório). Denylist não serve — ver "Estado" abaixo |
 | `editor` | edita no working tree, só sob `claim()` ativo | correio recusa spawn sem claim; `--permission-mode acceptEdits` |
-| `worktree` | git worktree próprio, entrega branch/diff | correio cria o worktree e passa como `cwd` |
+| `worktree` | git worktree próprio, entrega branch/diff | correio cria o worktree e passa como `cwd`; se não conseguir criar, recusa |
 
 Tier é atributo do colega no roster. Um pedido pode **rebaixar** (pedir `advisor` a um `editor`), nunca elevar.
 
@@ -195,6 +195,23 @@ O que a implementação mudou em relação a este desenho:
 - **`board_read` com `*`** faz listagem por prefixo, evitando uma sétima tool só pra isso.
 - **Expansão de `${VAR}` nos caminhos do roster**, para o mesmo arquivo servir Mac e VM.
 - **`fechar_thread` virou tool própria** (o desenho tinha 6 tools; são 7 na prática).
+
+### O tier `advisor` do desenho não segurava nada (corrigido em 03/08)
+
+O caminho de escrita foi testado com `claude` real depois, e o `advisor` **escreveu o arquivo**:
+`--disallowedTools Edit Write NotebookEdit` deixa o buraco do `Bash` (`echo x > arquivo`), e
+`bypassPermissions` — que o desenho usava para evitar prompt em headless — ignora a negação.
+
+Medido nas quatro variantes: só segurou negando `Bash` junto, ou usando **allowlist**. Ficou a
+allowlist (`--allowedTools` com leitura, Bash read-only e as tools do escritório), porque erra pro
+lado seguro: o que não for listado fica negado. O advisor continua útil — lê `git log` normalmente.
+
+Na mesma passada, `resolverCwd` do tier `worktree` caía silenciosamente no working tree real
+quando não conseguia criar o worktree — exatamente o oposto do que o tier existe pra garantir.
+Agora recusa.
+
+Os três tiers têm E2E real (`scripts/smoke-escrita.mjs`) e 10 testes de worktree com repo git
+temporário. Total: 117 testes.
 
 Falta a fase 7 (Icarus como cliente).
 
