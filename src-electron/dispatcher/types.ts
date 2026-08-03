@@ -12,6 +12,7 @@ export interface AdapterInvokeParams {
   contextMessages?: Array<{ role: 'user' | 'assistant'; content: string }> // histórico para CLIs sem resume nativo
   onToken?: (chunk: string) => void  // streaming callback
   abortSignal?: AbortSignal
+  escritorioId?: string     // identidade desta execução no Escritório (ESCRITORIO_ID)
 }
 
 export interface AdapterInvokeResult {

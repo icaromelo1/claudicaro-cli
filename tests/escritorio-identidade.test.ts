@@ -7,6 +7,7 @@ import {
   labelDaIdentidade,
   mapearIdentidades,
   proximaOrdem,
+  envComIdentidade,
 } from '../src-electron/escritorio/identidade.js'
 
 describe('rotuloDoCard', () => {
@@ -53,6 +54,33 @@ describe('mapearIdentidades', () => {
     expect(mapa.get('icarus:claude-1')).toBe('abc')
     expect(mapa.get('icarus:agy-1')).toBe('ghi')
     expect(mapa.has('icarus:def')).toBe(false)
+  })
+})
+
+describe('envComIdentidade', () => {
+  it('injeta ESCRITORIO_ID quando o card tem identidade', () => {
+    const env = envComIdentidade('icarus:claude-1', { PATH: '/bin' })
+
+    expect(env.ESCRITORIO_ID).toBe('icarus:claude-1')
+    expect(env.PATH).toBe('/bin')
+  })
+
+  it('sem identidade, REMOVE o ESCRITORIO_ID herdado do app', () => {
+    const env = envComIdentidade(undefined, { PATH: '/bin', ESCRITORIO_ID: 'do-app' })
+
+    expect(env.ESCRITORIO_ID).toBeUndefined()
+    expect(env.PATH).toBe('/bin')
+  })
+
+  it('identidade vazia conta como ausente', () => {
+    expect(envComIdentidade('', { ESCRITORIO_ID: 'do-app' }).ESCRITORIO_ID).toBeUndefined()
+  })
+
+  it('não muta o env base', () => {
+    const base = { PATH: '/bin' } as NodeJS.ProcessEnv
+    envComIdentidade('icarus:agy-1', base)
+
+    expect(base.ESCRITORIO_ID).toBeUndefined()
   })
 })
 

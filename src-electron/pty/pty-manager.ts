@@ -1,11 +1,13 @@
 import * as pty from 'node-pty'
 import type { IPty } from 'node-pty'
+import { envComIdentidade } from '../escritorio/identidade.js'
 
 export interface PtyCreateOptions {
   cwd?: string
   resumeSessionId?: string
   initialInput?: string
   bypass?: boolean
+  escritorioId?: string
 }
 
 interface CliSpawnSpec {
@@ -74,7 +76,7 @@ export class PtyManager {
       cols: 80,
       rows: 30,
       ...(cwd ? { cwd } : {}),
-      env: process.env as Record<string, string>,
+      env: envComIdentidade(opts.escritorioId),
     })
 
     const session: Session = { proc, capturedBytes: 0 }

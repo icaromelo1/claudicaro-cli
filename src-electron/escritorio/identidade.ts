@@ -1,5 +1,20 @@
 export const PREFIXO_ICARUS = 'icarus:'
 
+export function envComIdentidade(
+  escritorioId: string | undefined,
+  base: NodeJS.ProcessEnv = process.env,
+): Record<string, string> {
+  const env = { ...base } as Record<string, string>
+
+  if (escritorioId) {
+    env.ESCRITORIO_ID = escritorioId
+  } else {
+    delete env.ESCRITORIO_ID
+  }
+
+  return env
+}
+
 export function rotuloDoCard(cli: string, ordem: number): string {
   return `${cli}-${ordem}`
 }

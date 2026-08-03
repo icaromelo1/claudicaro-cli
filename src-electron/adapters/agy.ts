@@ -2,6 +2,7 @@
 // Versão: 1.0 — 2026-07-20
 
 import { spawn } from 'child_process'
+import { envComIdentidade } from '../escritorio/identidade.js'
 import type {
   IAdapter,
   AdapterInvokeParams,
@@ -47,7 +48,7 @@ export class AgyAdapter implements IAdapter {
     args.push('-p', task)
 
     const content = await new Promise<string>((resolve, reject) => {
-      const proc = spawn('agy', args, { shell: false })
+      const proc = spawn('agy', args, { shell: false, env: envComIdentidade(params.escritorioId) })
       let stdout = ''
       let stderr = ''
 

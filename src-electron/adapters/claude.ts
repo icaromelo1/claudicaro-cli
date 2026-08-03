@@ -2,6 +2,7 @@
 // Versão: 1.0 — 2026-05-12
 
 import { spawn } from 'child_process'
+import { envComIdentidade } from '../escritorio/identidade.js'
 import type {
   IAdapter,
   AdapterInvokeParams,
@@ -49,7 +50,7 @@ export class ClaudeAdapter implements IAdapter {
     args.push('-p', sanitizeInput(params.task))
 
     const { content, sessionId, tokens } = await new Promise<{ content: string; sessionId?: string; tokens?: number }>((resolve, reject) => {
-      const proc = spawn('claude', args, { shell: false })
+      const proc = spawn('claude', args, { shell: false, env: envComIdentidade(params.escritorioId) })
       let lineBuffer = ''
       let finalContent = ''
       let foundSessionId: string | undefined

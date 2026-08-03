@@ -3,6 +3,7 @@
 // para o binário standalone `copilot` com --output-format json e --session-id nativo.
 
 import { spawn } from 'child_process'
+import { envComIdentidade } from '../escritorio/identidade.js'
 import type {
   IAdapter,
   AdapterInvokeParams,
@@ -39,7 +40,7 @@ export class CopilotAdapter implements IAdapter {
     }
 
     const { content, sessionId, tokens } = await new Promise<{ content: string; sessionId?: string; tokens?: number }>((resolve, reject) => {
-      const proc = spawn('copilot', args, { shell: false })
+      const proc = spawn('copilot', args, { shell: false, env: envComIdentidade(params.escritorioId) })
       let lineBuffer = ''
       let finalContent = ''
       let foundSessionId: string | undefined
