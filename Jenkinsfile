@@ -15,7 +15,7 @@ pipeline {
       steps {
         script {
           docker.image('node:20').inside(ambienteNode()) {
-            sh 'npm ci && npm run lint && npm run test && npm run build'
+            sh 'npm ci && npx prisma generate && npm run lint && npm run test && npm run build'
           }
         }
       }
